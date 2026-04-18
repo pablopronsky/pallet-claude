@@ -1,0 +1,138 @@
+// Prisma schema — Nuevo Parket (Control de Consignación)
+// Base de datos: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -------------------------------------------------------------------
+// ENUMS
+// -------------------------------------------------------------------
+
+enum Rol {
+  ADMIN
+  VENDEDOR
+}
+
+enum Sucursal {
+  QUILMES
+  LA_PLATA
+  GONNET
+}
+
+enum Motivo {
+  MUESTRA
+  ROTURA
+  DONACION
+  VENCIMIENTO
+  OTRO
+}
+
+// -------------------------------------------------------------------
+// MODELOS
+// -------------------------------------------------------------------
+
+model User {
+  id        String    @id @default(cuid())
+  nombre    String
+  email     String    @unique
+  password  String
+  rol       Rol
+  sucursal  Sucursal?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  ingresos Ingreso[] @relation("IngresoAdmin")
+  ventas   Venta[]   @relation("VentaUser")
+  bajas    Baja[]    @relation("BajaAdmin")
+
+  // Garantiza unicidad del "slot": un solo admin (sucursal NULL) y un vendedor por sucursal.
+  // En PostgreSQL este índice único trata NULL como distinto entre filas, por eso
+  // protegemos el slot de admin adicionalmente en la capa de aplicación.
+  @@unique([rol, sucursal])
+  @@index([email])
+}
+
+model Producto {
+  id        String   @id @default(cuid())
+  nombre    String   @unique
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ingresos Ingreso[]
+  ventas   Venta[]
+  bajas    Baja[]
+
+  @@index([activo])
+}
+
+model Ingreso {
+  id                 String   @id @default(cuid())
+  productoId         String
+  sucursal           Sucursal
+  cantidadCajas      Int
+  precioCostoPorCaja Decimal  @db.Decimal(12, 2)
+  fecha              DateTime @default(now())
+  adminId            String
+  notas              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  producto Producto @relation(fields: [productoId], references: [id], onDelete: Restrict)
+  admin    User     @relation("IngresoAdmin", fields: [adminId], references: [id], onDelete: Restrict)
+  ventas   Venta[]
+
+  @@index([productoId])
+  @@index([sucursal])
+  @@index([fecha])
+}
+
+model Venta {
+  id                 String   @id @default(cuid())
+  productoId         String
+  ingresoId          String
+  sucursal           Sucursal
+  cantidadCajas      Int
+  precioVentaPorCaja Decimal  @db.Decimal(12, 2)
+  fecha              DateTime @default(now())
+  userId             String
+  notas              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  producto Producto @relation(fields: [productoId], references: [id], onDelete: Restrict)
+  ingreso  Ingreso  @relation(fields: [ingresoId], references: [id], onDelete: Restrict)
+  user     User     @relation("VentaUser", fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([productoId])
+  @@index([ingresoId])
+  @@index([sucursal])
+  @@index([fecha])
+  @@index([userId])
+}
+
+model Baja {
+  id            String   @id @default(cuid())
+  productoId    String
+  sucursal      Sucursal
+  cantidadCajas Int
+  motivo        Motivo
+  fecha         DateTime @default(now())
+  adminId       String
+  notas         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  producto Producto @relation(fields: [productoId], references: [id], onDelete: Restrict)
+  admin    User     @relation("BajaAdmin", fields: [adminId], references: [id], onDelete: Restrict)
+
+  @@index([productoId])
+  @@index([sucursal])
+  @@index([fecha])
+}

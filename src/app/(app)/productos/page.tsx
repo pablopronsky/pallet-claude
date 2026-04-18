@@ -1,0 +1,109 @@
+import { redirect } from "next/navigation";
+
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  NuevoProductoForm,
+  EditarProductoRow,
+} from "@/components/productos/producto-form";
+import { formatFecha } from "@/lib/format";
+
+export default async function ProductosPage() {
+  const session = await auth();
+  if (session?.user.rol !== "ADMIN") redirect("/dashboard");
+
+  const productos = await prisma.producto.findMany({
+    orderBy: [{ activo: "desc" }, { nombre: "asc" }],
+  });
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <p className="np-kicker" style={{ color: "var(--np-orange)" }}>
+          Catálogo
+        </p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">
+          Modelos
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Alta y gestión de los modelos que se reciben en consignación.
+        </p>
+      </div>
+
+      <NuevoProductoForm />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Productos cargados</CardTitle>
+          <CardDescription>
+            Marcá como inactivo para que deje de aparecer en nuevos ingresos.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Alta</TableHead>
+                <TableHead className="text-right">Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {productos.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell className="font-medium">{p.nombre}</TableCell>
+                  <TableCell>
+                    <Badge variant={p.activo ? "success" : "secondary"}>
+                      {p.activo ? "Activo" : "Inactivo"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {formatFecha(p.createdAt)}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex justify-end">
+                      <EditarProductoRow
+                        producto={{
+                          id: p.id,
+                          nombre: p.nombre,
+                          activo: p.activo,
+                        }}
+                      />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {productos.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="py-8 text-center text-muted-foreground"
+                  >
+                    Todavía no hay productos cargados.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

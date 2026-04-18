@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Paleta Nuevo Parket — dark only */
+    --np-green: #006730;
+    --np-green-600: #00572a;
+    --np-green-400: #1a7d44;
+    --np-orange: #ef7f1a;
+    --np-orange-600: #d16d10;
+    --np-ink: #1a1c1f;
+    --np-charcoal: #24272b;
+    --np-panel: #101215;
+    --np-panel-2: #15181c;
+    --np-line: #2a2e33;
+    --np-text: #e8eaec;
+    --np-text-dim: #9aa0a6;
+    --np-text-muted: #6c7076;
+
+    /* Sucursal chips */
+    --np-quilmes: #eab308;
+    --np-laplata: #3b82f6;
+    --np-gonnet: #ef4444;
+
+    /* Estado */
+    --np-ok: #22c55e;
+    --np-warn: #f59e0b;
+    --np-err: #ef4444;
+
+    /* Shadcn tokens mapeados al tema oscuro NP */
+    --background: 220 8% 11%;       /* #1a1c1f */
+    --foreground: 210 8% 92%;       /* #e8eaec */
+    --card: 220 10% 8%;             /* #101215 */
+    --card-foreground: 210 8% 92%;
+    --popover: 220 10% 8%;
+    --popover-foreground: 210 8% 92%;
+    --primary: 143 100% 20%;        /* #006730 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 7% 15%;        /* #24272b */
+    --secondary-foreground: 210 8% 92%;
+    --muted: 220 7% 15%;
+    --muted-foreground: 220 4% 56%; /* #9aa0a6 */
+    --accent: 26 86% 52%;           /* #ef7f1a */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 8% 18%;           /* #2a2e33 */
+    --input: 220 8% 18%;
+    --ring: 143 100% 25%;
+    --radius: 0.625rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    background: var(--np-ink);
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1, "tnum" 0;
+    -webkit-font-smoothing: antialiased;
+  }
+  .tabular,
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .np-card {
+    @apply rounded-xl border bg-card shadow-[0_1px_0_0_rgba(255,255,255,0.02)_inset];
+    border-color: var(--np-line);
+    background: var(--np-panel);
+  }
+  .np-card-2 {
+    background: var(--np-panel-2);
+  }
+  .np-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  .np-chip-quilmes {
+    background: color-mix(in oklab, var(--np-quilmes) 18%, transparent);
+    color: var(--np-quilmes);
+  }
+  .np-chip-laplata {
+    background: color-mix(in oklab, var(--np-laplata) 18%, transparent);
+    color: var(--np-laplata);
+  }
+  .np-chip-gonnet {
+    background: color-mix(in oklab, var(--np-gonnet) 18%, transparent);
+    color: var(--np-gonnet);
+  }
+  .np-kicker {
+    @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground;
+  }
+}
