@@ -1,0 +1,265 @@
+/* ============================================================
+   Nuevo Parket — Colors & Type
+   Core tokens for the Nuevo Parket brand.
+   Import this file and use the CSS vars for all visual work.
+   ============================================================ */
+
+/* Montserrat — uploaded brand variable font, served locally */
+@font-face {
+  font-family: 'Montserrat';
+  src: url('fonts/Montserrat-VariableFont_wght.ttf') format('truetype-variations'),
+       url('fonts/Montserrat-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* -------------------------------------------------------
+     COLORS
+     ------------------------------------------------------- */
+
+  /* Brand core */
+  --np-green:        #006730;   /* Primary brand — "parket" green */
+  --np-green-hover:  #00552a;   /* Darker hover */
+  --np-green-soft:   #0b7a3d;   /* Slightly lighter for on-dark text */
+  --np-orange:       #ef7f1a;   /* Secondary accent — used sparingly */
+  --np-orange-hover: #d96e10;
+
+  /* Dark neutrals — background hierarchy (app/marketing is dark-first) */
+  --np-ink:          #1a1c1f;   /* Deepest — page bg on dark surfaces */
+  --np-charcoal:     #24272b;   /* Default dark surface bg */
+  --np-charcoal-2:   #2d3135;   /* Elevated surface / cards on dark */
+  --np-slate:        #3a3e43;   /* Hairline borders / dividers on dark */
+
+  /* Light neutrals */
+  --np-bone:         #f6f5f2;   /* Warm off-white page bg */
+  --np-paper:        #ffffff;   /* Pure white */
+  --np-sand:         #ece8e1;   /* Soft warm section bg */
+  --np-stone:        #c9c6c0;   /* Mid neutral */
+  --np-graphite:     #6a6e73;   /* Muted body on light */
+
+  /* Text on dark surfaces */
+  --np-fg-strong:    #ffffff;
+  --np-fg:           #e7e6e3;
+  --np-fg-muted:     #a7a9ad;
+  --np-fg-faint:     #6f7378;
+
+  /* Text on light surfaces */
+  --np-fg-on-light:        #1a1c1f;
+  --np-fg-on-light-muted:  #5a5e63;
+  --np-fg-on-light-faint:  #9a9ea3;
+
+  /* Semantic */
+  --np-success: var(--np-green);
+  --np-warn:    var(--np-orange);
+  --np-danger:  #c0392b;
+  --np-info:    #3a6b8f;
+
+  /* Scrims / overlays for hero photography */
+  --np-scrim-top:    rgba(26, 28, 31, 0.0);
+  --np-scrim-bot:    rgba(26, 28, 31, 0.85);
+
+  /* -------------------------------------------------------
+     TYPOGRAPHY
+     ------------------------------------------------------- */
+
+  /* Families — Montserrat carries the whole system.
+     The logo is a custom geometric lowercase wordmark. For all
+     supporting copy we use Montserrat at different weights
+     (300 light for display, 400/500 for body, 600/700 for UI). */
+  --np-font-display: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+  --np-font-sans:    'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+  --np-font-mono:    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Display scale — large hero titles use LIGHT weight (300) to
+     match the brochure's airy headings like "Servicios", "Vinilicos SPC" */
+  --np-fs-display-xl: clamp(48px, 7vw, 96px);
+  --np-fs-display-l:  clamp(40px, 5.5vw, 72px);
+  --np-fs-display-m:  clamp(32px, 4vw, 52px);
+  --np-fs-display-s:  clamp(26px, 3vw, 38px);
+
+  /* Text scale */
+  --np-fs-h1:   32px;
+  --np-fs-h2:   24px;
+  --np-fs-h3:   20px;
+  --np-fs-h4:   17px;
+  --np-fs-body: 15px;
+  --np-fs-small: 13px;
+  --np-fs-tiny:  11px;
+
+  /* Line heights */
+  --np-lh-display: 1.02;
+  --np-lh-tight:   1.15;
+  --np-lh-body:    1.55;
+  --np-lh-loose:   1.75;
+
+  /* Tracking */
+  --np-tr-eyebrow: 0.18em;  /* "NUESTROS PRODUCTOS" uppercase eyebrow */
+  --np-tr-button:  0.04em;
+  --np-tr-normal:  0;
+  --np-tr-tight:   -0.01em;
+  --np-tr-display: -0.02em;
+
+  /* -------------------------------------------------------
+     SPACING & LAYOUT
+     ------------------------------------------------------- */
+  --np-sp-1:  4px;
+  --np-sp-2:  8px;
+  --np-sp-3:  12px;
+  --np-sp-4:  16px;
+  --np-sp-5:  24px;
+  --np-sp-6:  32px;
+  --np-sp-7:  48px;
+  --np-sp-8:  64px;
+  --np-sp-9:  96px;
+  --np-sp-10: 128px;
+
+  --np-container:      1200px;
+  --np-container-wide: 1440px;
+  --np-gutter:         24px;
+
+  /* -------------------------------------------------------
+     RADII
+     Nuevo Parket uses minimal rounding — most cards and image
+     crops are square or softly rounded. Pills only on badges.
+     ------------------------------------------------------- */
+  --np-radius-0: 0;
+  --np-radius-1: 2px;
+  --np-radius-2: 4px;
+  --np-radius-3: 8px;
+  --np-radius-pill: 999px;
+
+  /* -------------------------------------------------------
+     BORDERS & DIVIDERS
+     ------------------------------------------------------- */
+  --np-border-dark:   1px solid rgba(255, 255, 255, 0.08);
+  --np-border-light:  1px solid rgba(26, 28, 31, 0.10);
+  --np-divider-accent-w: 40px;   /* The signature short green underline */
+  --np-divider-accent-h: 4px;
+
+  /* -------------------------------------------------------
+     SHADOWS (used sparingly — Nuevo Parket is flat)
+     ------------------------------------------------------- */
+  --np-shadow-sm: 0 1px 2px rgba(0,0,0,0.25);
+  --np-shadow-md: 0 8px 24px rgba(0,0,0,0.30);
+  --np-shadow-lg: 0 24px 48px rgba(0,0,0,0.40);
+
+  /* -------------------------------------------------------
+     MOTION
+     ------------------------------------------------------- */
+  --np-ease:        cubic-bezier(0.22, 0.61, 0.36, 1);
+  --np-ease-out:    cubic-bezier(0.16, 1, 0.30, 1);
+  --np-dur-fast:    120ms;
+  --np-dur-med:     240ms;
+  --np-dur-slow:    480ms;
+}
+
+/* ============================================================
+   SEMANTIC TYPOGRAPHY CLASSES
+   ============================================================ */
+
+.np-eyebrow {
+  font-family: var(--np-font-sans);
+  font-weight: 500;
+  font-size: var(--np-fs-small);
+  letter-spacing: var(--np-tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--np-fg-muted);
+}
+
+/* Hero display — airy, light-weight. Used for "Servicios", section
+   titles in the brochure. Often a two-tone: first word green, second white. */
+.np-display {
+  font-family: var(--np-font-display);
+  font-weight: 300;
+  font-size: var(--np-fs-display-l);
+  line-height: var(--np-lh-display);
+  letter-spacing: var(--np-tr-display);
+  color: var(--np-fg-strong);
+}
+.np-display--xl { font-size: var(--np-fs-display-xl); }
+.np-display--m  { font-size: var(--np-fs-display-m); }
+.np-display--s  { font-size: var(--np-fs-display-s); }
+
+/* The two-tone accent split used in brochure headings. */
+.np-display .accent,
+.np-accent { color: var(--np-green); }
+
+/* On dark background a softer green is more legible. */
+.np-on-dark .np-accent,
+.np-on-dark .np-display .accent { color: var(--np-green-soft); }
+
+h1, .np-h1 {
+  font-family: var(--np-font-sans);
+  font-weight: 600;
+  font-size: var(--np-fs-h1);
+  line-height: var(--np-lh-tight);
+  letter-spacing: var(--np-tr-tight);
+}
+h2, .np-h2 {
+  font-family: var(--np-font-sans);
+  font-weight: 600;
+  font-size: var(--np-fs-h2);
+  line-height: var(--np-lh-tight);
+}
+h3, .np-h3 {
+  font-family: var(--np-font-sans);
+  font-weight: 500;
+  font-size: var(--np-fs-h3);
+  line-height: var(--np-lh-tight);
+}
+h4, .np-h4 {
+  font-family: var(--np-font-sans);
+  font-weight: 600;
+  font-size: var(--np-fs-h4);
+  line-height: var(--np-lh-tight);
+}
+
+body, p, .np-body {
+  font-family: var(--np-font-sans);
+  font-weight: 400;
+  font-size: var(--np-fs-body);
+  line-height: var(--np-lh-body);
+}
+.np-body--loose { line-height: var(--np-lh-loose); }
+.np-small { font-size: var(--np-fs-small); line-height: 1.5; }
+.np-tiny  { font-size: var(--np-fs-tiny);  line-height: 1.4; }
+
+/* The giant item-number numerals that sit beside each list item
+   in the catalog ("01.", "02.", ...) — light weight, generous. */
+.np-list-numeral {
+  font-family: var(--np-font-display);
+  font-weight: 300;
+  font-size: 44px;
+  line-height: 1;
+  color: var(--np-fg-strong);
+  letter-spacing: -0.02em;
+}
+
+/* The signature short green underline that sits below titles
+   and every numbered item in the catalog. */
+.np-rule {
+  display: block;
+  width: var(--np-divider-accent-w);
+  height: var(--np-divider-accent-h);
+  background: var(--np-green);
+  margin-top: 8px;
+  border: 0;
+}
+.np-on-dark .np-rule { background: var(--np-green-soft); }
+
+/* Faded background wordmark used on section pages (huge "NP" watermark) */
+.np-watermark {
+  position: absolute;
+  inset: 0;
+  font-family: var(--np-font-display);
+  font-weight: 700;
+  font-size: 40vw;
+  color: rgba(255,255,255,0.025);
+  pointer-events: none;
+  user-select: none;
+  line-height: 0.8;
+  letter-spacing: -0.06em;
+  overflow: hidden;
+}

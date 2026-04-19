@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { Sucursal } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
@@ -17,7 +18,7 @@ export type StockFila = {
 // Calcula stock por producto + sucursal:
 //   stock = ingresado - vendido - dadoDeBaja
 // Pensado para tablas y dashboard. Si se pasa una sucursal, filtra.
-export async function getStockActual(filtro?: {
+async function _getStockActual(filtro?: {
   sucursal?: Sucursal;
   productoId?: string;
 }): Promise<StockFila[]> {
@@ -108,6 +109,12 @@ export async function getStockActual(filtro?: {
 
   return filas;
 }
+
+export const getStockActual = unstable_cache(
+  _getStockActual,
+  ["stock-actual"],
+  { tags: ["stock", "ingresos", "ventas", "bajas"], revalidate: 60 },
+);
 
 // Cajas disponibles por producto + sucursal para forms de venta (stock > 0).
 export async function getDisponiblesParaVender(sucursal: Sucursal) {

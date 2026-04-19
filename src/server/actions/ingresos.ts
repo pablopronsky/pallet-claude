@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
@@ -61,5 +61,6 @@ export async function crearIngresoAction(
   revalidatePath("/stock");
   revalidatePath("/movimientos");
   revalidatePath("/dashboard");
+  revalidateTag("ingresos", "max");
   redirect("/ingresos?ok=1");
 }

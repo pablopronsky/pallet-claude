@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { Sucursal } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
@@ -44,7 +45,7 @@ export type DashboardData = {
   evolucion: PuntoEvolucion[];
 };
 
-export async function getDashboardData(
+async function _getDashboardData(
   opts: DashboardOpts = {},
 ): Promise<DashboardData> {
   const sucursal = opts.sucursalForzada ?? opts.sucursal;
@@ -180,3 +181,9 @@ export async function getDashboardData(
     evolucion,
   };
 }
+
+export const getDashboardData = unstable_cache(
+  _getDashboardData,
+  ["dashboard-data"],
+  { tags: ["dashboard", "ingresos", "ventas", "bajas"], revalidate: 60 },
+);

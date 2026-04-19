@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { Sucursal, Motivo } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
@@ -24,7 +25,7 @@ type Opts = Filtros & {
   sucursalForzada?: Sucursal; // cuando el rol es VENDEDOR, forzamos su sucursal
 };
 
-export async function getMovimientos(opts: Opts): Promise<Movimiento[]> {
+async function _getMovimientos(opts: Opts): Promise<Movimiento[]> {
   const sucursal = opts.sucursalForzada ?? opts.sucursal;
 
   const rangoFecha =
@@ -136,3 +137,9 @@ export async function getMovimientos(opts: Opts): Promise<Movimiento[]> {
   list.sort((a, b) => b.fecha.getTime() - a.fecha.getTime());
   return list;
 }
+
+export const getMovimientos = unstable_cache(
+  _getMovimientos,
+  ["movimientos"],
+  { tags: ["movimientos", "ingresos", "ventas", "bajas"], revalidate: 60 },
+);
