@@ -49,22 +49,46 @@ export function NuevoProductoForm() {
             {state.fieldErrors.nombre[0]}
           </p>
         )}
-        {state.error && (
-          <p className="text-xs text-destructive">{state.error}</p>
-        )}
-        {state.ok && state.mensaje && (
-          <p className="text-xs text-emerald-700">{state.mensaje}</p>
+      </div>
+      <div className="space-y-1.5 md:w-48">
+        <Label htmlFor="stockMinimo-nuevo">Stock mínimo (cajas)</Label>
+        <Input
+          id="stockMinimo-nuevo"
+          name="stockMinimo"
+          type="number"
+          min="0"
+          step="1"
+          defaultValue="0"
+        />
+        {state.fieldErrors?.stockMinimo?.[0] && (
+          <p className="text-xs text-destructive">
+            {state.fieldErrors.stockMinimo[0]}
+          </p>
         )}
       </div>
       <SubmitButton labelDefault="Agregar" labelPending="Creando...">
         <Plus className="mr-2 h-4 w-4" />
         Agregar
       </SubmitButton>
+      {state.error && (
+        <Alert variant="destructive" className="w-full">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{state.error}</AlertDescription>
+        </Alert>
+      )}
+      {state.ok && state.mensaje && (
+        <p className="w-full text-xs text-emerald-700">{state.mensaje}</p>
+      )}
     </form>
   );
 }
 
-type Producto = { id: string; nombre: string; activo: boolean };
+type Producto = {
+  id: string;
+  nombre: string;
+  activo: boolean;
+  stockMinimo: number;
+};
 
 export function EditarProductoRow({ producto }: { producto: Producto }) {
   const [state, formAction] = useActionState(
@@ -80,6 +104,15 @@ export function EditarProductoRow({ producto }: { producto: Producto }) {
         defaultValue={producto.nombre}
         required
         className="w-56"
+      />
+      <Input
+        name="stockMinimo"
+        type="number"
+        min="0"
+        step="1"
+        defaultValue={producto.stockMinimo}
+        className="w-24"
+        title="Stock mínimo (cajas)"
       />
       <label className="flex items-center gap-2 text-sm">
         <input

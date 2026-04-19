@@ -1,4 +1,10 @@
-import { ArrowDownToLine, ArrowUpFromLine, MinusCircle } from "lucide-react";
+import {
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  MinusCircle,
+  ArrowLeftRight,
+  Wallet,
+} from "lucide-react";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -28,12 +34,16 @@ const LABEL_TIPO: Record<string, string> = {
   INGRESO: "Ingreso",
   VENTA: "Venta",
   BAJA: "Baja",
+  TRANSFERENCIA: "Transferencia",
+  LIQUIDACION: "Liquidación",
 };
 
 const COLOR_TIPO: Record<string, string> = {
   INGRESO: "var(--np-green)",
   VENTA: "var(--np-orange)",
   BAJA: "#ef4444",
+  TRANSFERENCIA: "#3b82f6",
+  LIQUIDACION: "#a855f7",
 };
 
 function TipoBadge({ tipo }: { tipo: Movimiento["tipo"] }) {
@@ -43,7 +53,11 @@ function TipoBadge({ tipo }: { tipo: Movimiento["tipo"] }) {
       ? ArrowDownToLine
       : tipo === "VENTA"
         ? ArrowUpFromLine
-        : MinusCircle;
+        : tipo === "BAJA"
+          ? MinusCircle
+          : tipo === "TRANSFERENCIA"
+            ? ArrowLeftRight
+            : Wallet;
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide"
@@ -80,8 +94,9 @@ export default async function HistorialPage({ searchParams }: PageProps) {
     fecha: formatFechaHora(m.fecha),
     tipo: LABEL_TIPO[m.tipo] ?? m.tipo,
     producto: m.productoNombre,
-    sucursal: SUCURSAL_LABEL[m.sucursal],
-    cajas: m.cantidadCajas,
+    sucursal: m.sucursal ? SUCURSAL_LABEL[m.sucursal] : "—",
+    sucursalDestino: m.sucursalDestino ? SUCURSAL_LABEL[m.sucursalDestino] : "",
+    cajas: m.cantidadCajas ?? "",
     precioUnitario: m.precioUnitario ?? "",
     total: m.total ?? "",
     motivo: m.motivo ? MOTIVO_LABEL[m.motivo] : "",
@@ -115,10 +130,22 @@ export default async function HistorialPage({ searchParams }: PageProps) {
               </TableCell>
               <TableCell className="font-medium">{m.productoNombre}</TableCell>
               <TableCell>
-                <SucursalChip sucursal={m.sucursal} />
+                {m.sucursal ? (
+                  m.sucursalDestino ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <SucursalChip sucursal={m.sucursal} />
+                      <ArrowLeftRight className="h-3 w-3 text-muted-foreground" />
+                      <SucursalChip sucursal={m.sucursalDestino} />
+                    </span>
+                  ) : (
+                    <SucursalChip sucursal={m.sucursal} />
+                  )
+                ) : (
+                  <span className="text-xs text-muted-foreground">—</span>
+                )}
               </TableCell>
               <TableCell className="text-right tabular">
-                {formatCajas(m.cantidadCajas)}
+                {m.cantidadCajas !== null ? formatCajas(m.cantidadCajas) : "—"}
               </TableCell>
               <TableCell className="text-right tabular">
                 {m.precioUnitario !== null ? formatARS(m.precioUnitario) : "—"}
@@ -166,12 +193,22 @@ export default async function HistorialPage({ searchParams }: PageProps) {
             <p className="text-[15px] font-semibold leading-tight">
               {m.productoNombre}
             </p>
-            <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-              <SucursalChip sucursal={m.sucursal} />
-              <span>·</span>
-              <span className="tabular font-medium text-foreground">
-                {formatCajas(m.cantidadCajas)} cajas
-              </span>
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              {m.sucursal && <SucursalChip sucursal={m.sucursal} />}
+              {m.sucursalDestino && (
+                <>
+                  <ArrowLeftRight className="h-3 w-3" />
+                  <SucursalChip sucursal={m.sucursalDestino} />
+                </>
+              )}
+              {m.cantidadCajas !== null && (
+                <>
+                  <span>·</span>
+                  <span className="tabular font-medium text-foreground">
+                    {formatCajas(m.cantidadCajas)} cajas
+                  </span>
+                </>
+              )}
             </div>
             <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
               {m.precioUnitario !== null && (
@@ -259,6 +296,7 @@ export default async function HistorialPage({ searchParams }: PageProps) {
             { header: "Tipo", key: "tipo" },
             { header: "Modelo", key: "producto" },
             { header: "Sucursal", key: "sucursal" },
+            { header: "Destino", key: "sucursalDestino" },
             { header: "Cajas", key: "cajas" },
             { header: "Precio/caja", key: "precioUnitario" },
             { header: "Total", key: "total" },

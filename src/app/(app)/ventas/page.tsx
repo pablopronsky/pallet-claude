@@ -24,6 +24,7 @@ import {
   formatARS,
   formatCajas,
   formatFecha,
+  montoEnARS,
   toNumber,
 } from "@/lib/format";
 
@@ -43,20 +44,21 @@ export default async function VentasPage({ searchParams }: PageProps) {
     orderBy: { fecha: "desc" },
     include: {
       producto: { select: { nombre: true } },
-      ingreso: { select: { precioCostoPorCaja: true } },
+      ingreso: { select: { precioCostoPorCaja: true, moneda: true, tipoCambio: true } },
       user: { select: { nombre: true } },
     },
   });
 
   const totalCajas = ventas.reduce((a, v) => a + v.cantidadCajas, 0);
   const totalVendido = ventas.reduce(
-    (a, v) => a + toNumber(v.precioVentaPorCaja) * v.cantidadCajas,
+    (a, v) => a + montoEnARS(v.precioVentaPorCaja, v.moneda, v.tipoCambio) * v.cantidadCajas,
     0,
   );
   const utilidadTotal = ventas.reduce(
     (a, v) =>
       a +
-      (toNumber(v.precioVentaPorCaja) - toNumber(v.ingreso.precioCostoPorCaja)) *
+      (montoEnARS(v.precioVentaPorCaja, v.moneda, v.tipoCambio) -
+        montoEnARS(v.ingreso.precioCostoPorCaja, v.ingreso.moneda, v.ingreso.tipoCambio)) *
         v.cantidadCajas,
     0,
   );
@@ -66,11 +68,12 @@ export default async function VentasPage({ searchParams }: PageProps) {
     producto: v.producto.nombre,
     sucursal: SUCURSAL_LABEL[v.sucursal],
     cajas: v.cantidadCajas,
-    precioVenta: toNumber(v.precioVentaPorCaja),
-    precioCosto: toNumber(v.ingreso.precioCostoPorCaja),
-    totalVenta: toNumber(v.precioVentaPorCaja) * v.cantidadCajas,
+    precioVenta: montoEnARS(v.precioVentaPorCaja, v.moneda, v.tipoCambio),
+    precioCosto: montoEnARS(v.ingreso.precioCostoPorCaja, v.ingreso.moneda, v.ingreso.tipoCambio),
+    totalVenta: montoEnARS(v.precioVentaPorCaja, v.moneda, v.tipoCambio) * v.cantidadCajas,
     utilidad:
-      (toNumber(v.precioVentaPorCaja) - toNumber(v.ingreso.precioCostoPorCaja)) *
+      (montoEnARS(v.precioVentaPorCaja, v.moneda, v.tipoCambio) -
+        montoEnARS(v.ingreso.precioCostoPorCaja, v.ingreso.moneda, v.ingreso.tipoCambio)) *
       v.cantidadCajas,
     vendedor: v.user.nombre,
     notas: v.notas ?? "",
@@ -163,8 +166,8 @@ export default async function VentasPage({ searchParams }: PageProps) {
           </TableHeader>
           <TableBody>
             {ventas.map((v) => {
-              const precio = toNumber(v.precioVentaPorCaja);
-              const costo = toNumber(v.ingreso.precioCostoPorCaja);
+              const precio = montoEnARS(v.precioVentaPorCaja, v.moneda, v.tipoCambio);
+              const costo = montoEnARS(v.ingreso.precioCostoPorCaja, v.ingreso.moneda, v.ingreso.tipoCambio);
               const total = precio * v.cantidadCajas;
               const utilidad = (precio - costo) * v.cantidadCajas;
               return (

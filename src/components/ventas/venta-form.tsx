@@ -14,6 +14,7 @@ import {
   AlertTitle,
 } from "@/components/ui/alert";
 import { SubmitButton } from "@/components/submit-button";
+import { MonedaInput } from "@/components/moneda-input";
 import { SUCURSAL_LABEL, SUCURSALES } from "@/lib/constants";
 import { fechaParaInput, formatCajas } from "@/lib/format";
 import { crearVentaAction } from "@/server/actions/ventas";
@@ -135,22 +136,14 @@ export function VentaForm({ rolAdmin, sucursalVendedor, disponibles }: Props) {
           )}
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="precioVentaPorCaja">Precio de venta por caja (ARS)</Label>
-          <Input
-            id="precioVentaPorCaja"
-            name="precioVentaPorCaja"
-            type="number"
-            min="0.01"
-            step="0.01"
-            required
-          />
-          {state.fieldErrors?.precioVentaPorCaja?.[0] && (
-            <p className="text-xs text-destructive">
-              {state.fieldErrors.precioVentaPorCaja[0]}
-            </p>
-          )}
-        </div>
+        <MonedaInput
+          precioLabel="Precio de venta por caja"
+          precioName="precioVentaPorCaja"
+          monedaName="moneda"
+          tipoCambioName="tipoCambio"
+          precioError={state.fieldErrors?.precioVentaPorCaja?.[0]}
+          tipoCambioError={state.fieldErrors?.tipoCambio?.[0]}
+        />
 
         <div className="space-y-1.5">
           <Label htmlFor="fecha">Fecha de venta</Label>

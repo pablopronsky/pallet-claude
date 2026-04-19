@@ -1,4 +1,4 @@
-import { Sucursal, Rol, Motivo } from "@prisma/client";
+import { Sucursal, Rol, Motivo, Moneda } from "@prisma/client";
 
 // Listado de sucursales fijas (no configurables).
 export const SUCURSALES: Sucursal[] = [
@@ -25,6 +25,18 @@ export const MOTIVO_LABEL: Record<Motivo, string> = {
   DONACION: "Donación",
   VENCIMIENTO: "Vencimiento",
   OTRO: "Otro",
+};
+
+export const MONEDAS: Moneda[] = [Moneda.ARS, Moneda.USD];
+
+export const MONEDA_LABEL: Record<Moneda, string> = {
+  ARS: "Pesos (ARS)",
+  USD: "Dólares (USD)",
+};
+
+export const MONEDA_SIGNO: Record<Moneda, string> = {
+  ARS: "$",
+  USD: "US$",
 };
 
 // Proveedor único de la consignación.

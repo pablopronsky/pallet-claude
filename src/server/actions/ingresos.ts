@@ -22,6 +22,8 @@ export async function crearIngresoAction(
     sucursal: String(formData.get("sucursal") ?? ""),
     cantidadCajas: String(formData.get("cantidadCajas") ?? ""),
     precioCostoPorCaja: String(formData.get("precioCostoPorCaja") ?? ""),
+    moneda: String(formData.get("moneda") ?? "ARS"),
+    tipoCambio: String(formData.get("tipoCambio") ?? ""),
     fecha: String(formData.get("fecha") ?? ""),
     notas: String(formData.get("notas") ?? ""),
   };
@@ -51,6 +53,8 @@ export async function crearIngresoAction(
       sucursal: parsed.data.sucursal,
       cantidadCajas: parsed.data.cantidadCajas,
       precioCostoPorCaja: parsed.data.precioCostoPorCaja,
+      moneda: parsed.data.moneda,
+      tipoCambio: parsed.data.tipoCambio ?? null,
       fecha: parsed.data.fecha ?? new Date(),
       adminId: session.user.id,
       notas: parsed.data.notas,
@@ -61,6 +65,6 @@ export async function crearIngresoAction(
   revalidatePath("/stock");
   revalidatePath("/movimientos");
   revalidatePath("/dashboard");
-  revalidateTag("ingresos", "max");
+  revalidateTag("ingresos");
   redirect("/ingresos?ok=1");
 }

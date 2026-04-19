@@ -12,6 +12,8 @@ import {
   Users,
   Layers,
   Download,
+  ArrowLeftRight,
+  Wallet,
   Menu,
   X,
 } from "lucide-react";
@@ -33,7 +35,9 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/stock", label: "Stock actual", icon: PackageSearch, roles: ["ADMIN", "VENDEDOR"] },
   { href: "/ingresos", label: "Ingresos", icon: TruckIcon, roles: ["ADMIN"] },
   { href: "/ventas", label: "Ventas", icon: ShoppingCart, roles: ["ADMIN", "VENDEDOR"] },
+  { href: "/transferencias", label: "Transferencias", icon: ArrowLeftRight, roles: ["ADMIN"] },
   { href: "/bajas", label: "Bajas", icon: MinusCircle, roles: ["ADMIN"] },
+  { href: "/liquidaciones", label: "Liquidaciones", icon: Wallet, roles: ["ADMIN"] },
   { href: "/historial", label: "Historial", icon: ClipboardList, roles: ["ADMIN", "VENDEDOR"] },
   { href: "/productos", label: "Modelos", icon: Layers, roles: ["ADMIN"] },
   { href: "/usuarios", label: "Usuarios", icon: Users, roles: ["ADMIN"] },

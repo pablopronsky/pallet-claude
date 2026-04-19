@@ -1,4 +1,6 @@
+import Link from "next/link";
 import {
+  AlertTriangle,
   ArrowDownToLine,
   MinusCircle,
   Package,
@@ -88,12 +90,22 @@ export default async function DashboardPage({ searchParams }: PageProps) {
         }}
       />
 
-      {/* KPI row: hero (x2) + utilidad + stock */}
+      {/* KPI row: hero (x2) + saldo + utilidad + stock */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <HeroKpi
-          titulo={`Deuda con ${PROVEEDOR_NOMBRE}`}
-          valor={formatARS(data.deudaTotal)}
-          ayuda="Total a pagar por mercadería ya vendida (costo del lote × cajas vendidas)."
+          titulo={
+            user.rol === "ADMIN"
+              ? `Saldo pendiente con ${PROVEEDOR_NOMBRE}`
+              : `Deuda con ${PROVEEDOR_NOMBRE}`
+          }
+          valor={formatARS(
+            user.rol === "ADMIN" ? data.saldoPendiente : data.deudaTotal,
+          )}
+          ayuda={
+            user.rol === "ADMIN"
+              ? `Deuda generada ${formatARS(data.deudaTotal)} − liquidado ${formatARS(data.liquidadoTotal)}`
+              : "Total a pagar por mercadería ya vendida."
+          }
           sparkline={<SparklineDeuda data={data.evolucion} />}
         />
         <KpiCard
@@ -112,6 +124,76 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           acento="green"
         />
       </div>
+
+      {data.alertasStockBajo.length > 0 && (
+        <div
+          className="np-card p-5"
+          style={{
+            borderColor:
+              "color-mix(in oklab, var(--np-orange) 50%, var(--np-line))",
+            background:
+              "color-mix(in oklab, var(--np-orange) 8%, transparent)",
+          }}
+        >
+          <div className="mb-3 flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle
+                className="h-5 w-5"
+                style={{ color: "var(--np-orange)" }}
+              />
+              <div>
+                <h3 className="text-sm font-semibold">Stock bajo</h3>
+                <p className="text-xs text-muted-foreground">
+                  {data.alertasStockBajo.length} combinaciones por debajo del
+                  umbral mínimo.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/productos"
+              className="text-xs underline text-muted-foreground hover:text-foreground"
+            >
+              Configurar umbrales
+            </Link>
+          </div>
+          <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+            {data.alertasStockBajo.slice(0, 9).map((a) => (
+              <div
+                key={`${a.productoId}-${a.sucursal}`}
+                className="flex items-center justify-between rounded-md border bg-background/40 px-3 py-2 text-sm"
+                style={{ borderColor: "var(--np-line)" }}
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{a.productoNombre}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {SUCURSAL_LABEL[a.sucursal]}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p
+                    className="text-base font-semibold tabular"
+                    style={{ color: "var(--np-orange)" }}
+                  >
+                    {formatCajas(a.stock)}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    mín. {a.stockMinimo}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+          {data.alertasStockBajo.length > 9 && (
+            <p className="mt-3 text-xs text-muted-foreground">
+              + {data.alertasStockBajo.length - 9} más. Revisá la página de{" "}
+              <Link href="/stock" className="underline">
+                Stock
+              </Link>
+              .
+            </p>
+          )}
+        </div>
+      )}
 
       {/* KPI row secundaria */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

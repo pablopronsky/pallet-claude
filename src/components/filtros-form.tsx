@@ -17,7 +17,7 @@ type Props = {
     hasta?: string;
     sucursal?: Sucursal | "";
     productoId?: string;
-    tipo?: "INGRESO" | "VENTA" | "BAJA" | "";
+    tipo?: "INGRESO" | "VENTA" | "BAJA" | "TRANSFERENCIA" | "LIQUIDACION" | "";
   };
   productos?: Producto[];
   mostrarTipo?: boolean;
@@ -104,6 +104,8 @@ export function FiltrosForm({
             <option value="INGRESO">Ingresos</option>
             <option value="VENTA">Ventas</option>
             <option value="BAJA">Bajas</option>
+            <option value="TRANSFERENCIA">Transferencias</option>
+            <option value="LIQUIDACION">Liquidaciones</option>
           </Select>
         </div>
       )}

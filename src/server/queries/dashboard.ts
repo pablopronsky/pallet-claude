@@ -5,6 +5,7 @@ import { Sucursal } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { getStockActual, type StockFila } from "@/server/queries/stock";
+import { montoEnARS } from "@/lib/format";
 import type { Filtros } from "@/schemas/filtros";
 
 type DashboardOpts = Filtros & {
@@ -31,15 +32,26 @@ export type PuntoEvolucion = {
   utilidad: number;
 };
 
+export type AlertaStock = {
+  productoId: string;
+  productoNombre: string;
+  sucursal: Sucursal;
+  stock: number;
+  stockMinimo: number;
+};
+
 export type DashboardData = {
-  deudaTotal: number;
+  deudaTotal: number; // ARS equivalente, bruto (sin restar liquidaciones)
+  liquidadoTotal: number; // ARS equivalente
+  saldoPendiente: number; // deudaTotal - liquidadoTotal (>= 0)
   utilidadTotal: number;
   totalVendido: number;
   cajasVendidas: number;
-  cajasIngresadas: number;
+  cajasIngresadas: number; // solo origen PROVEEDOR
   cajasDadasDeBaja: number;
   stockCajas: number;
   stock: StockFila[];
+  alertasStockBajo: AlertaStock[];
   ventasPorSucursal: VentasPorSucursal[];
   topModelos: TopModelo[];
   evolucion: PuntoEvolucion[];
@@ -71,33 +83,49 @@ async function _getDashboardData(
   const whereIngresos = {
     ...(sucursal ? { sucursal } : {}),
     ...rango,
+    origen: "PROVEEDOR" as const,
   };
+  // Liquidaciones son globales (no se filtran por sucursal). Solo respetan rango de fechas.
+  const [ventas, ingresosAgg, bajasAgg, productos, liquidaciones] =
+    await Promise.all([
+      prisma.venta.findMany({
+        where: whereVentas,
+        include: {
+          ingreso: {
+            select: {
+              precioCostoPorCaja: true,
+              moneda: true,
+              tipoCambio: true,
+            },
+          },
+          producto: { select: { id: true, nombre: true } },
+        },
+      }),
+      prisma.ingreso.aggregate({
+        where: whereIngresos,
+        _sum: { cantidadCajas: true },
+      }),
+      prisma.baja.aggregate({
+        where: whereBajas,
+        _sum: { cantidadCajas: true },
+      }),
+      prisma.producto.findMany({ select: { id: true, nombre: true } }),
+      sucursal
+        ? Promise.resolve(
+            [] as Array<{
+              monto: import("@prisma/client").Prisma.Decimal;
+              moneda: import("@prisma/client").Moneda;
+              tipoCambio: import("@prisma/client").Prisma.Decimal | null;
+            }>,
+          )
+        : prisma.liquidacion.findMany({
+            where: rango,
+            select: { monto: true, moneda: true, tipoCambio: true },
+          }),
+    ]);
 
-  const [ventas, ingresosAgg, bajasAgg, productos] = await Promise.all([
-    prisma.venta.findMany({
-      where: whereVentas,
-      include: {
-        ingreso: { select: { precioCostoPorCaja: true } },
-        producto: { select: { id: true, nombre: true } },
-      },
-    }),
-    prisma.ingreso.aggregate({
-      where: whereIngresos,
-      _sum: { cantidadCajas: true },
-    }),
-    prisma.baja.aggregate({
-      where: whereBajas,
-      _sum: { cantidadCajas: true },
-    }),
-    prisma.producto.findMany({ select: { id: true, nombre: true } }),
-  ]);
-
-  // Mapa de nombres por producto (para top-modelos).
   const productoNombre = new Map(productos.map((p) => [p.id, p.nombre]));
 
-  // Deuda total con All Covering = SUM(venta.cajas × costo_del_ingreso).
-  // Utilidad bruta = SUM(venta.cajas × (precioVenta − precioCosto)).
-  // Total vendido = SUM(venta.cajas × precioVenta).
   let deudaTotal = 0;
   let utilidadTotal = 0;
   let totalVendido = 0;
@@ -108,12 +136,16 @@ async function _getDashboardData(
   const porMes = new Map<string, PuntoEvolucion>();
 
   for (const v of ventas) {
-    const costo = Number(v.ingreso.precioCostoPorCaja);
-    const precio = Number(v.precioVentaPorCaja);
+    const costoARS = montoEnARS(
+      v.ingreso.precioCostoPorCaja,
+      v.ingreso.moneda,
+      v.ingreso.tipoCambio,
+    );
+    const precioARS = montoEnARS(v.precioVentaPorCaja, v.moneda, v.tipoCambio);
     const cajas = v.cantidadCajas;
 
-    const totalVenta = precio * cajas;
-    const costoVenta = costo * cajas;
+    const totalVenta = precioARS * cajas;
+    const costoVenta = costoARS * cajas;
     const utilidad = totalVenta - costoVenta;
 
     deudaTotal += costoVenta;
@@ -150,10 +182,28 @@ async function _getDashboardData(
     porMes.set(key, pm2);
   }
 
+  const liquidadoTotal = liquidaciones.reduce(
+    (acc, l) => acc + montoEnARS(l.monto, l.moneda, l.tipoCambio),
+    0,
+  );
+  const saldoPendiente = Math.max(0, deudaTotal - liquidadoTotal);
+
   const stock = await getStockActual(
     sucursal ? { sucursal } : undefined,
   );
   const stockCajas = stock.reduce((acc, f) => acc + f.stock, 0);
+
+  // Alertas: filas con stockMinimo > 0 cuyo stock actual cae por debajo del umbral.
+  const alertasStockBajo: AlertaStock[] = stock
+    .filter((f) => f.stockMinimo > 0 && f.stock <= f.stockMinimo)
+    .map((f) => ({
+      productoId: f.productoId,
+      productoNombre: f.productoNombre,
+      sucursal: f.sucursal,
+      stock: f.stock,
+      stockMinimo: f.stockMinimo,
+    }))
+    .sort((a, b) => a.stock - b.stock);
 
   const topModelos = Array.from(porModelo.values())
     .sort((a, b) => b.cajas - a.cajas)
@@ -169,6 +219,8 @@ async function _getDashboardData(
 
   return {
     deudaTotal,
+    liquidadoTotal,
+    saldoPendiente,
     utilidadTotal,
     totalVendido,
     cajasVendidas,
@@ -176,6 +228,7 @@ async function _getDashboardData(
     cajasDadasDeBaja: bajasAgg._sum.cantidadCajas ?? 0,
     stockCajas,
     stock,
+    alertasStockBajo,
     ventasPorSucursal,
     topModelos,
     evolucion,
@@ -185,5 +238,15 @@ async function _getDashboardData(
 export const getDashboardData = unstable_cache(
   _getDashboardData,
   ["dashboard-data"],
-  { tags: ["dashboard", "ingresos", "ventas", "bajas"], revalidate: 60 },
+  {
+    tags: [
+      "dashboard",
+      "ingresos",
+      "ventas",
+      "bajas",
+      "transferencias",
+      "liquidaciones",
+    ],
+    revalidate: 60,
+  },
 );

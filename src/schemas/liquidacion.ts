@@ -1,21 +1,12 @@
 import { z } from "zod";
-import { Sucursal, Moneda } from "@prisma/client";
+import { Moneda } from "@prisma/client";
 
-const sucursalEnum = z.nativeEnum(Sucursal);
 const monedaEnum = z.nativeEnum(Moneda);
 
-export const crearIngresoSchema = z
+export const crearLiquidacionSchema = z
   .object({
-    productoId: z
-      .string({ required_error: "Elegí un producto" })
-      .min(1, "Elegí un producto"),
-    sucursal: sucursalEnum,
-    cantidadCajas: z.coerce
-      .number({ invalid_type_error: "Ingresá un número" })
-      .int("Debe ser un número entero de cajas")
-      .positive("Debe ser mayor a cero"),
-    precioCostoPorCaja: z.coerce
-      .number({ invalid_type_error: "Ingresá un precio válido" })
+    monto: z.coerce
+      .number({ invalid_type_error: "Ingresá un monto válido" })
       .positive("Debe ser mayor a cero"),
     moneda: monedaEnum.default(Moneda.ARS),
     tipoCambio: z
@@ -23,6 +14,11 @@ export const crearIngresoSchema = z
       .optional()
       .transform((v) => (typeof v === "number" ? v : undefined)),
     fecha: z.coerce.date().optional(),
+    comprobante: z
+      .string()
+      .max(120, "Máximo 120 caracteres")
+      .optional()
+      .transform((s) => (s && s.trim() !== "" ? s.trim() : undefined)),
     notas: z
       .string()
       .max(500, "Máximo 500 caracteres")
@@ -39,4 +35,4 @@ export const crearIngresoSchema = z
     }
   });
 
-export type CrearIngresoInput = z.infer<typeof crearIngresoSchema>;
+export type CrearLiquidacionInput = z.infer<typeof crearLiquidacionSchema>;

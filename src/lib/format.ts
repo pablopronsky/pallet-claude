@@ -1,10 +1,17 @@
 // Helpers de formato para UI (pesos argentinos, fechas, números).
 
-import { Prisma } from "@prisma/client";
+import { Prisma, Moneda } from "@prisma/client";
 
 const ARS = new Intl.NumberFormat("es-AR", {
   style: "currency",
   currency: "ARS",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const USD = new Intl.NumberFormat("es-AR", {
+  style: "currency",
+  currency: "USD",
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
@@ -45,6 +52,32 @@ export function toNumber(v: Numerico | null | undefined): number {
 
 export function formatARS(v: Numerico | null | undefined): string {
   return ARS.format(toNumber(v));
+}
+
+export function formatUSD(v: Numerico | null | undefined): string {
+  return USD.format(toNumber(v));
+}
+
+// Formatea un monto en su moneda original.
+export function formatMoneda(
+  v: Numerico | null | undefined,
+  moneda: Moneda,
+): string {
+  return moneda === "USD" ? formatUSD(v) : formatARS(v);
+}
+
+// Convierte un monto a ARS aplicando el tipo de cambio.
+// Si la moneda es ARS, devuelve el monto tal cual (TC se ignora).
+// Si la moneda es USD y no hay TC, devuelve el monto sin convertir (asume 1 = caso degenerado).
+export function montoEnARS(
+  monto: Numerico | null | undefined,
+  moneda: Moneda,
+  tipoCambio: Numerico | null | undefined,
+): number {
+  const m = toNumber(monto);
+  if (moneda === "ARS") return m;
+  const tc = toNumber(tipoCambio);
+  return tc > 0 ? m * tc : m;
 }
 
 export function formatCajas(v: Numerico | null | undefined): string {

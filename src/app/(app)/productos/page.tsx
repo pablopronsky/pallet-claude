@@ -61,6 +61,7 @@ export default async function ProductosPage() {
               <TableRow>
                 <TableHead>Nombre</TableHead>
                 <TableHead>Estado</TableHead>
+                <TableHead className="text-right">Stock mín.</TableHead>
                 <TableHead>Alta</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
@@ -74,6 +75,9 @@ export default async function ProductosPage() {
                       {p.activo ? "Activo" : "Inactivo"}
                     </Badge>
                   </TableCell>
+                  <TableCell className="text-right tabular">
+                    {p.stockMinimo}
+                  </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {formatFecha(p.createdAt)}
                   </TableCell>
@@ -84,6 +88,7 @@ export default async function ProductosPage() {
                           id: p.id,
                           nombre: p.nombre,
                           activo: p.activo,
+                          stockMinimo: p.stockMinimo,
                         }}
                       />
                     </div>
@@ -93,7 +98,7 @@ export default async function ProductosPage() {
               {productos.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={4}
+                    colSpan={5}
                     className="py-8 text-center text-muted-foreground"
                   >
                     Todavía no hay productos cargados.

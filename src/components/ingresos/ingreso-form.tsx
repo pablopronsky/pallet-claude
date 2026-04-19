@@ -13,6 +13,7 @@ import {
   AlertTitle,
 } from "@/components/ui/alert";
 import { SubmitButton } from "@/components/submit-button";
+import { MonedaInput } from "@/components/moneda-input";
 import { SUCURSALES, SUCURSAL_LABEL } from "@/lib/constants";
 import { fechaParaInput } from "@/lib/format";
 import { crearIngresoAction } from "@/server/actions/ingresos";
@@ -86,22 +87,14 @@ export function IngresoForm({ productos }: { productos: Producto[] }) {
           )}
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="precioCostoPorCaja">Precio de costo por caja (ARS)</Label>
-          <Input
-            id="precioCostoPorCaja"
-            name="precioCostoPorCaja"
-            type="number"
-            min="0.01"
-            step="0.01"
-            required
-          />
-          {state.fieldErrors?.precioCostoPorCaja?.[0] && (
-            <p className="text-xs text-destructive">
-              {state.fieldErrors.precioCostoPorCaja[0]}
-            </p>
-          )}
-        </div>
+        <MonedaInput
+          precioLabel="Precio de costo por caja"
+          precioName="precioCostoPorCaja"
+          monedaName="moneda"
+          tipoCambioName="tipoCambio"
+          precioError={state.fieldErrors?.precioCostoPorCaja?.[0]}
+          tipoCambioError={state.fieldErrors?.tipoCambio?.[0]}
+        />
 
         <div className="space-y-1.5">
           <Label htmlFor="fecha">Fecha del ingreso</Label>

@@ -27,6 +27,7 @@ export async function crearProductoAction(
 
   const parsed = crearProductoSchema.safeParse({
     nombre: String(formData.get("nombre") ?? ""),
+    stockMinimo: String(formData.get("stockMinimo") ?? "0"),
   });
   if (!parsed.success) {
     return {
@@ -47,7 +48,12 @@ export async function crearProductoAction(
     };
   }
 
-  await prisma.producto.create({ data: { nombre: parsed.data.nombre } });
+  await prisma.producto.create({
+    data: {
+      nombre: parsed.data.nombre,
+      stockMinimo: parsed.data.stockMinimo,
+    },
+  });
   revalidatePath("/productos");
 
   return { ok: true, mensaje: "Producto creado." };
@@ -64,6 +70,7 @@ export async function editarProductoAction(
     id: String(formData.get("id") ?? ""),
     nombre: String(formData.get("nombre") ?? ""),
     activo: String(formData.get("activo") ?? "false") === "true",
+    stockMinimo: String(formData.get("stockMinimo") ?? "0"),
   });
   if (!parsed.success) {
     return {
@@ -87,8 +94,14 @@ export async function editarProductoAction(
 
   await prisma.producto.update({
     where: { id: parsed.data.id },
-    data: { nombre: parsed.data.nombre, activo: parsed.data.activo },
+    data: {
+      nombre: parsed.data.nombre,
+      activo: parsed.data.activo,
+      stockMinimo: parsed.data.stockMinimo,
+    },
   });
+  revalidatePath("/dashboard");
+  revalidatePath("/stock");
   revalidatePath("/productos");
 
   return { ok: true, mensaje: "Producto actualizado." };

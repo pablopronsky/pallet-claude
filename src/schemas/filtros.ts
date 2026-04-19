@@ -31,6 +31,8 @@ export const filtrosSchema = z
         z.literal("INGRESO"),
         z.literal("VENTA"),
         z.literal("BAJA"),
+        z.literal("TRANSFERENCIA"),
+        z.literal("LIQUIDACION"),
         z.literal(""),
       ])
       .optional()

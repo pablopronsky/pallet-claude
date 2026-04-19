@@ -117,36 +117,57 @@ export default async function StockPage({ searchParams }: PageProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {stock.map((f) => (
-              <TableRow key={`${f.productoId}-${f.sucursal}`}>
-                <TableCell>
-                  <SucursalChip sucursal={f.sucursal} />
-                </TableCell>
-                <TableCell className="font-medium">{f.productoNombre}</TableCell>
-                <TableCell className="text-right">
-                  {formatCajas(f.ingresado)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {formatCajas(f.vendido)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {formatCajas(f.dadoDeBaja)}
-                </TableCell>
-                <TableCell className="text-right font-semibold">
-                  <span
-                    className={
-                      f.stock === 0
-                        ? "text-muted-foreground"
-                        : f.stock < 0
-                          ? "text-destructive"
-                          : ""
-                    }
-                  >
-                    {formatCajas(f.stock)}
-                  </span>
-                </TableCell>
-              </TableRow>
-            ))}
+            {stock.map((f) => {
+              const enAlerta = f.stockMinimo > 0 && f.stock <= f.stockMinimo;
+              return (
+                <TableRow key={`${f.productoId}-${f.sucursal}`}>
+                  <TableCell>
+                    <SucursalChip sucursal={f.sucursal} />
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {f.productoNombre}
+                    {enAlerta && (
+                      <span
+                        className="ml-2 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase"
+                        style={{
+                          background:
+                            "color-mix(in oklab, var(--np-orange) 22%, transparent)",
+                          color: "var(--np-orange)",
+                        }}
+                        title={`Stock bajo (mínimo ${f.stockMinimo})`}
+                      >
+                        bajo
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {formatCajas(f.ingresado)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {formatCajas(f.vendido)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {formatCajas(f.dadoDeBaja)}
+                  </TableCell>
+                  <TableCell className="text-right font-semibold">
+                    <span
+                      style={
+                        enAlerta ? { color: "var(--np-orange)" } : undefined
+                      }
+                      className={
+                        f.stock === 0
+                          ? "text-muted-foreground"
+                          : f.stock < 0
+                            ? "text-destructive"
+                            : ""
+                      }
+                    >
+                      {formatCajas(f.stock)}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
             {stock.length === 0 && (
               <TableRow>
                 <TableCell

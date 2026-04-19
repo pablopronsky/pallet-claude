@@ -43,6 +43,8 @@ export async function crearVentaAction(
     productoId: String(formData.get("productoId") ?? ""),
     cantidadCajas: String(formData.get("cantidadCajas") ?? ""),
     precioVentaPorCaja: String(formData.get("precioVentaPorCaja") ?? ""),
+    moneda: String(formData.get("moneda") ?? "ARS"),
+    tipoCambio: String(formData.get("tipoCambio") ?? ""),
     fecha: String(formData.get("fecha") ?? ""),
     notas: String(formData.get("notas") ?? ""),
   });
@@ -54,14 +56,23 @@ export async function crearVentaAction(
     };
   }
 
-  const { productoId, cantidadCajas, precioVentaPorCaja, fecha, notas } =
-    parsed.data;
+  const {
+    productoId,
+    cantidadCajas,
+    precioVentaPorCaja,
+    moneda,
+    tipoCambio,
+    fecha,
+    notas,
+  } = parsed.data;
 
   // Todo dentro de una transacción para evitar vender más de lo que hay.
   try {
     await prisma.$transaction(async (tx) => {
-      // Stock total disponible = ingresos - ventas - bajas (por producto/sucursal).
-      const [ingAgg, venAgg, bajAgg] = await Promise.all([
+      // Stock disponible incluye los ingresos clonados por transferencias entrantes
+      // (origen=TRANSFERENCIA en ingreso ya situado en la sucursal destino) y
+      // descuenta las cajas que salieron por transferencia desde esta sucursal.
+      const [ingAgg, venAgg, bajAgg, transAgg] = await Promise.all([
         tx.ingreso.aggregate({
           where: { productoId, sucursal: sucursal! },
           _sum: { cantidadCajas: true },
@@ -74,11 +85,16 @@ export async function crearVentaAction(
           where: { productoId, sucursal: sucursal! },
           _sum: { cantidadCajas: true },
         }),
+        tx.transferencia.aggregate({
+          where: { productoId, sucursalOrigen: sucursal! },
+          _sum: { cantidadCajas: true },
+        }),
       ]);
       const disponible =
         (ingAgg._sum.cantidadCajas ?? 0) -
         (venAgg._sum.cantidadCajas ?? 0) -
-        (bajAgg._sum.cantidadCajas ?? 0);
+        (bajAgg._sum.cantidadCajas ?? 0) -
+        (transAgg._sum.cantidadCajas ?? 0);
 
       if (disponible < cantidadCajas) {
         throw new Error(
@@ -86,11 +102,15 @@ export async function crearVentaAction(
         );
       }
 
-      // Consumo FIFO sobre ingresos con stock propio remanente.
+      // Consumo FIFO sobre ingresos con stock propio remanente,
+      // descontando ventas previas y transferencias salientes por ingreso.
       const ingresos = await tx.ingreso.findMany({
         where: { productoId, sucursal: sucursal! },
         orderBy: { fecha: "asc" },
-        include: { ventas: { select: { cantidadCajas: true } } },
+        include: {
+          ventas: { select: { cantidadCajas: true } },
+          transferenciasOrigen: { select: { cantidadCajas: true } },
+        },
       });
 
       let restan = cantidadCajas;
@@ -99,7 +119,11 @@ export async function crearVentaAction(
       for (const ing of ingresos) {
         if (restan <= 0) break;
         const ya = ing.ventas.reduce((a, v) => a + v.cantidadCajas, 0);
-        const libres = ing.cantidadCajas - ya;
+        const transferidas = ing.transferenciasOrigen.reduce(
+          (a, t) => a + t.cantidadCajas,
+          0,
+        );
+        const libres = ing.cantidadCajas - ya - transferidas;
         if (libres <= 0) continue;
 
         const tomar = Math.min(libres, restan);
@@ -110,6 +134,8 @@ export async function crearVentaAction(
             sucursal: sucursal!,
             cantidadCajas: tomar,
             precioVentaPorCaja,
+            moneda,
+            tipoCambio: tipoCambio ?? null,
             fecha: fechaVenta,
             userId: user.id,
             notas,
@@ -135,6 +161,6 @@ export async function crearVentaAction(
   revalidatePath("/stock");
   revalidatePath("/movimientos");
   revalidatePath("/dashboard");
-  revalidateTag("ventas", "max");
+  revalidateTag("ventas");
   redirect("/ventas?ok=1");
 }

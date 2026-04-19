@@ -39,7 +39,7 @@ export async function crearBajaAction(
 
   try {
     await prisma.$transaction(async (tx) => {
-      const [ingAgg, venAgg, bajAgg] = await Promise.all([
+      const [ingAgg, venAgg, bajAgg, transAgg] = await Promise.all([
         tx.ingreso.aggregate({
           where: { productoId, sucursal },
           _sum: { cantidadCajas: true },
@@ -52,11 +52,16 @@ export async function crearBajaAction(
           where: { productoId, sucursal },
           _sum: { cantidadCajas: true },
         }),
+        tx.transferencia.aggregate({
+          where: { productoId, sucursalOrigen: sucursal },
+          _sum: { cantidadCajas: true },
+        }),
       ]);
       const disponible =
         (ingAgg._sum.cantidadCajas ?? 0) -
         (venAgg._sum.cantidadCajas ?? 0) -
-        (bajAgg._sum.cantidadCajas ?? 0);
+        (bajAgg._sum.cantidadCajas ?? 0) -
+        (transAgg._sum.cantidadCajas ?? 0);
 
       if (disponible < cantidadCajas) {
         throw new Error(
@@ -85,6 +90,6 @@ export async function crearBajaAction(
   revalidatePath("/stock");
   revalidatePath("/movimientos");
   revalidatePath("/dashboard");
-  revalidateTag("bajas", "max");
+  revalidateTag("bajas");
   redirect("/bajas?ok=1");
 }

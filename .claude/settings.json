@@ -13,7 +13,9 @@
       "Bash(curl -s -o /dev/null -w \"login: %{http_code}\\\\n\" --max-time 30 http://localhost:3000/login)",
       "Bash(curl -s -o /dev/null -w \"dashboard \\(should 307\\): %{http_code}\\\\n\" --max-time 30 http://localhost:3000/dashboard)",
       "Bash(curl -s -o /dev/null -w \"root: %{http_code}\\\\n\" --max-time 30 http://localhost:3000/)",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(npm run *)",
+      "Read(//c/c/Users/pablo/OneDrive/Desktop/**)"
     ]
   }
 }
