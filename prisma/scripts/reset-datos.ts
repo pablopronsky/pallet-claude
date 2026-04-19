@@ -25,6 +25,7 @@ async function main() {
   console.log(`Bajas borradas:          ${bajas.count}`);
   console.log(`Ingresos borrados:       ${ingresos.count}`);
   console.log("\nListo. Usuarios y productos intactos.");
+  console.log("Nota: el caché de la app expira en hasta 60 segundos. Recargá la página si ves datos viejos.");
 }
 
 main()
