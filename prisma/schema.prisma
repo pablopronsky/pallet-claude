@@ -18,6 +18,7 @@ datasource db {
 enum Rol {
   ADMIN
   VENDEDOR
+  LOGISTICA
 }
 
 enum Sucursal {

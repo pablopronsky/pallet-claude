@@ -22,3 +22,18 @@ export const editarUsuarioSchema = z
   .strict();
 
 export type EditarUsuarioInput = z.infer<typeof editarUsuarioSchema>;
+
+export const crearUsuarioSchema = z.object({
+  nombre: z
+    .string({ required_error: "El nombre es obligatorio" })
+    .min(2, "El nombre debe tener al menos 2 caracteres")
+    .max(80, "El nombre es demasiado largo"),
+  email: z
+    .string({ required_error: "El email es obligatorio" })
+    .email("Ingresá un email válido"),
+  password: z
+    .string({ required_error: "La contraseña es obligatoria" })
+    .min(6, "La contraseña debe tener al menos 6 caracteres"),
+});
+
+export type CrearUsuarioInput = z.infer<typeof crearUsuarioSchema>;

@@ -30,7 +30,8 @@ type PageProps = {
 
 export default async function BajasPage({ searchParams }: PageProps) {
   const session = await auth();
-  if (session?.user.rol !== "ADMIN") redirect("/dashboard");
+  const rol = session?.user.rol;
+  if (rol !== "ADMIN" && rol !== "LOGISTICA") redirect("/dashboard");
 
   const { ok } = await searchParams;
 
@@ -68,12 +69,14 @@ export default async function BajasPage({ searchParams }: PageProps) {
             Muestras, roturas, donaciones. Reducen stock, no generan deuda.
           </p>
         </div>
-        <Button asChild>
-          <Link href="/bajas/nueva">
-            <Plus className="mr-2 h-4 w-4" />
-            Nueva baja
-          </Link>
-        </Button>
+        {rol === "ADMIN" && (
+          <Button asChild>
+            <Link href="/bajas/nueva">
+              <Plus className="mr-2 h-4 w-4" />
+              Nueva baja
+            </Link>
+          </Button>
+        )}
       </div>
 
       {ok && (

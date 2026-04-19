@@ -270,7 +270,7 @@ export default async function HistorialPage({ searchParams }: PageProps) {
 
       <FiltrosForm
         action="/historial"
-        permitirSucursal={user.rol === "ADMIN"}
+        permitirSucursal={user.rol !== "VENDEDOR"}
         productos={productos}
         mostrarTipo
         defaultValues={{

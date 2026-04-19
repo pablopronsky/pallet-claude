@@ -4,6 +4,7 @@ import {
   ArrowDownToLine,
   MinusCircle,
   Package,
+  ShoppingCart,
   TrendingUp,
   Wallet,
   Receipt,
@@ -80,7 +81,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
 
       <FiltrosForm
         action="/dashboard"
-        permitirSucursal={user.rol === "ADMIN"}
+        permitirSucursal={user.rol !== "VENDEDOR"}
         productos={productos}
         defaultValues={{
           desde: sp.desde ?? "",
@@ -94,15 +95,15 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <HeroKpi
           titulo={
-            user.rol === "ADMIN"
+            user.rol !== "VENDEDOR"
               ? `Saldo pendiente con ${PROVEEDOR_NOMBRE}`
               : `Deuda con ${PROVEEDOR_NOMBRE}`
           }
           valor={formatARS(
-            user.rol === "ADMIN" ? data.saldoPendiente : data.deudaTotal,
+            user.rol !== "VENDEDOR" ? data.saldoPendiente : data.deudaTotal,
           )}
           ayuda={
-            user.rol === "ADMIN"
+            user.rol !== "VENDEDOR"
               ? `Deuda generada ${formatARS(data.deudaTotal)} − liquidado ${formatARS(data.liquidadoTotal)}`
               : "Total a pagar por mercadería ya vendida."
           }
@@ -122,6 +123,13 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           ayuda="Disponibles ahora"
           icon={<Package className="h-4 w-4" />}
           acento="green"
+        />
+        <KpiCard
+          titulo="Cajas vendidas"
+          valor={`${formatCajas(data.cajasVendidas)}`}
+          sufijo="cajas"
+          ayuda="Total del período"
+          icon={<ShoppingCart className="h-4 w-4" />}
         />
       </div>
 

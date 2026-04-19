@@ -20,6 +20,15 @@ export async function crearTransferenciaAction(
     };
   }
 
+  const adminId = session.user.id;
+  if (!adminId) {
+    return { ok: false, error: "Sesión inválida. Cerrá sesión y volvé a ingresar." };
+  }
+  const adminExiste = await prisma.user.findUnique({ where: { id: adminId }, select: { id: true } });
+  if (!adminExiste) {
+    return { ok: false, error: "Tu usuario ya no existe en el sistema. Cerrá sesión y volvé a ingresar." };
+  }
+
   const parsed = crearTransferenciaSchema.safeParse({
     productoId: String(formData.get("productoId") ?? ""),
     sucursalOrigen: String(formData.get("sucursalOrigen") ?? ""),
@@ -99,7 +108,7 @@ export async function crearTransferenciaAction(
             tipoCambio: ing.tipoCambio,
             origen: "TRANSFERENCIA",
             fecha: fechaTransfer,
-            adminId: session.user.id,
+            adminId,
             notas: notas
               ? `Transferencia desde ${sucursalOrigen}: ${notas}`
               : `Transferencia desde ${sucursalOrigen}`,
@@ -113,7 +122,7 @@ export async function crearTransferenciaAction(
             sucursalDestino,
             cantidadCajas: tomar,
             fecha: fechaTransfer,
-            adminId: session.user.id,
+            adminId,
             notas,
             ingresoOrigenId: ing.id,
             ingresoDestinoId: clon.id,
@@ -137,7 +146,7 @@ export async function crearTransferenciaAction(
   revalidatePath("/stock");
   revalidatePath("/movimientos");
   revalidatePath("/dashboard");
-  revalidateTag("ingresos", "max");
-  revalidateTag("stock", "max");
+  revalidateTag("ingresos");
+  revalidateTag("stock");
   redirect("/transferencias?ok=1");
 }

@@ -37,7 +37,8 @@ type PageProps = {
 
 export default async function LiquidacionesPage({ searchParams }: PageProps) {
   const session = await auth();
-  if (session?.user.rol !== "ADMIN") redirect("/dashboard");
+  const rol = session?.user.rol;
+  if (rol !== "ADMIN" && rol !== "LOGISTICA") redirect("/dashboard");
 
   const { ok } = await searchParams;
 
@@ -78,12 +79,14 @@ export default async function LiquidacionesPage({ searchParams }: PageProps) {
             Pagos al proveedor por mercadería ya vendida.
           </p>
         </div>
-        <Button asChild>
-          <Link href="/liquidaciones/nueva">
-            <Plus className="mr-2 h-4 w-4" />
-            Nueva liquidación
-          </Link>
-        </Button>
+        {rol === "ADMIN" && (
+          <Button asChild>
+            <Link href="/liquidaciones/nueva">
+              <Plus className="mr-2 h-4 w-4" />
+              Nueva liquidación
+            </Link>
+          </Button>
+        )}
       </div>
 
       {ok && (

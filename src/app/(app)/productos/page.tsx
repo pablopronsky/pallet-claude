@@ -26,7 +26,8 @@ import { formatFecha } from "@/lib/format";
 
 export default async function ProductosPage() {
   const session = await auth();
-  if (session?.user.rol !== "ADMIN") redirect("/dashboard");
+  const rol = session?.user.rol;
+  if (rol !== "ADMIN" && rol !== "LOGISTICA") redirect("/dashboard");
 
   const productos = await prisma.producto.findMany({
     orderBy: [{ activo: "desc" }, { nombre: "asc" }],
@@ -46,7 +47,7 @@ export default async function ProductosPage() {
         </p>
       </div>
 
-      <NuevoProductoForm />
+      {rol === "ADMIN" && <NuevoProductoForm />}
 
       <Card>
         <CardHeader>
@@ -63,7 +64,7 @@ export default async function ProductosPage() {
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Stock mín.</TableHead>
                 <TableHead>Alta</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
+                {rol === "ADMIN" && <TableHead className="text-right">Acciones</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -81,18 +82,20 @@ export default async function ProductosPage() {
                   <TableCell className="text-sm text-muted-foreground">
                     {formatFecha(p.createdAt)}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex justify-end">
-                      <EditarProductoRow
-                        producto={{
-                          id: p.id,
-                          nombre: p.nombre,
-                          activo: p.activo,
-                          stockMinimo: p.stockMinimo,
-                        }}
-                      />
-                    </div>
-                  </TableCell>
+                  {rol === "ADMIN" && (
+                    <TableCell>
+                      <div className="flex justify-end">
+                        <EditarProductoRow
+                          producto={{
+                            id: p.id,
+                            nombre: p.nombre,
+                            activo: p.activo,
+                            stockMinimo: p.stockMinimo,
+                          }}
+                        />
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
               {productos.length === 0 && (

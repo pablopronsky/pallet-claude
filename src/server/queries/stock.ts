@@ -10,6 +10,7 @@ export type StockFila = {
   productoNombre: string;
   sucursal: Sucursal;
   ingresado: number;
+  transferidaEntrada: number;
   vendido: number;
   dadoDeBaja: number;
   transferidoSalida: number;
@@ -18,8 +19,7 @@ export type StockFila = {
 };
 
 // Calcula stock por producto + sucursal:
-//   stock = ingresado (incluye clones por transferencia entrante)
-//         - vendido - dadoDeBaja - transferidoSalida
+//   stock = ingresado (solo PROVEEDOR) + transferidaEntrada - vendido - dadoDeBaja - transferidoSalida
 // Pensado para tablas y dashboard. Si se pasa una sucursal, filtra.
 async function _getStockActual(filtro?: {
   sucursal?: Sucursal;
@@ -35,9 +35,9 @@ async function _getStockActual(filtro?: {
     ...(filtro?.productoId ? { productoId: filtro.productoId } : {}),
   };
 
-  const [ingresos, ventas, bajas, transferencias, productos] = await Promise.all([
+  const [ingresosPorOrigen, ventas, bajas, transferencias, productos] = await Promise.all([
     prisma.ingreso.groupBy({
-      by: ["productoId", "sucursal"],
+      by: ["productoId", "sucursal", "origen"],
       where: wherePS,
       _sum: { cantidadCajas: true },
     }),
@@ -78,6 +78,7 @@ async function _getStockActual(filtro?: {
       productoNombre: productoNombre.get(pid) ?? "(eliminado)",
       sucursal: suc,
       ingresado: 0,
+      transferidaEntrada: 0,
       vendido: 0,
       dadoDeBaja: 0,
       transferidoSalida: 0,
@@ -88,8 +89,11 @@ async function _getStockActual(filtro?: {
     return fila;
   };
 
-  for (const r of ingresos) {
-    garantizar(r.productoId, r.sucursal).ingresado = r._sum.cantidadCajas ?? 0;
+  for (const r of ingresosPorOrigen) {
+    const fila = garantizar(r.productoId, r.sucursal);
+    const cajas = r._sum.cantidadCajas ?? 0;
+    if (r.origen === "PROVEEDOR") fila.ingresado += cajas;
+    else fila.transferidaEntrada += cajas;
   }
   for (const r of ventas) {
     garantizar(r.productoId, r.sucursal).vendido = r._sum.cantidadCajas ?? 0;
@@ -104,7 +108,7 @@ async function _getStockActual(filtro?: {
 
   const filas = Array.from(mapa.values()).map((f) => ({
     ...f,
-    stock: f.ingresado - f.vendido - f.dadoDeBaja - f.transferidoSalida,
+    stock: f.ingresado + f.transferidaEntrada - f.vendido - f.dadoDeBaja - f.transferidoSalida,
   }));
 
   filas.sort(

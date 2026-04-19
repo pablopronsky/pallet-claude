@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { editarUsuarioSchema } from "@/schemas/usuario";
+import { editarUsuarioSchema, crearUsuarioSchema } from "@/schemas/usuario";
 
 export type ActionState = {
   ok: boolean;
@@ -74,4 +74,50 @@ export async function editarUsuarioAction(
   revalidatePath("/usuarios");
 
   return { ok: true, mensaje: "Usuario actualizado correctamente." };
+}
+
+export async function crearUsuarioLogisticaAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const session = await auth();
+  if (!session?.user || session.user.rol !== "ADMIN") {
+    return { ok: false, error: "No tenés permiso para esta acción." };
+  }
+
+  const parsed = crearUsuarioSchema.safeParse({
+    nombre: String(formData.get("nombre") ?? ""),
+    email: String(formData.get("email") ?? "").toLowerCase().trim(),
+    password: String(formData.get("password") ?? ""),
+  });
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: "Revisá los datos ingresados.",
+      fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const existe = await prisma.user.findUnique({ where: { email: parsed.data.email } });
+  if (existe) {
+    return {
+      ok: false,
+      error: "Ya existe un usuario con ese email.",
+      fieldErrors: { email: ["Email en uso"] },
+    };
+  }
+
+  const hash = await bcrypt.hash(parsed.data.password, 10);
+  await prisma.user.create({
+    data: {
+      nombre: parsed.data.nombre,
+      email: parsed.data.email,
+      password: hash,
+      rol: "LOGISTICA",
+      sucursal: null,
+    },
+  });
+  revalidatePath("/usuarios");
+
+  return { ok: true, mensaje: "Usuario de logística creado correctamente." };
 }

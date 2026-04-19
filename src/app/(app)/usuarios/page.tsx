@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { ROL_LABEL } from "@/lib/constants";
 import { SucursalChip } from "@/components/sucursal-chip";
 import { EditarUsuarioForm } from "@/components/usuarios/editar-usuario-form";
+import { CrearUsuarioLogisticaForm } from "@/components/usuarios/crear-usuario-form";
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -16,7 +17,8 @@ function initials(name: string) {
 
 export default async function UsuariosPage() {
   const session = await auth();
-  if (session?.user.rol !== "ADMIN") redirect("/dashboard");
+  const rol = session?.user.rol;
+  if (rol !== "ADMIN" && rol !== "LOGISTICA") redirect("/dashboard");
 
   const usuarios = await prisma.user.findMany({
     orderBy: [{ rol: "asc" }, { sucursal: "asc" }, { nombre: "asc" }],
@@ -32,10 +34,19 @@ export default async function UsuariosPage() {
           Usuarios
         </h1>
         <p className="text-sm text-muted-foreground">
-          4 slots fijos: 1 administrador y 1 vendedor por sucursal. Solo se
-          editan; no se crean ni se eliminan.
+          Editá los usuarios existentes o agregá un usuario de logística.
         </p>
       </div>
+
+      {rol === "ADMIN" && (
+        <div className="np-card p-5">
+          <p className="np-kicker mb-1">Nuevo usuario de logística</p>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Acceso de solo lectura a todas las secciones.
+          </p>
+          <CrearUsuarioLogisticaForm />
+        </div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2">
         {usuarios.map((u) => {
@@ -76,11 +87,13 @@ export default async function UsuariosPage() {
                   </div>
                 </div>
               </header>
-              <div className="p-5">
-                <EditarUsuarioForm
-                  usuario={{ id: u.id, nombre: u.nombre, email: u.email }}
-                />
-              </div>
+              {rol === "ADMIN" && (
+                <div className="p-5">
+                  <EditarUsuarioForm
+                    usuario={{ id: u.id, nombre: u.nombre, email: u.email }}
+                  />
+                </div>
+              )}
             </article>
           );
         })}

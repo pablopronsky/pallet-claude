@@ -17,6 +17,7 @@ export const SUCURSAL_LABEL: Record<Sucursal, string> = {
 export const ROL_LABEL: Record<Rol, string> = {
   ADMIN: "Administrador",
   VENDEDOR: "Vendedor",
+  LOGISTICA: "Logística",
 };
 
 export const MOTIVO_LABEL: Record<Motivo, string> = {

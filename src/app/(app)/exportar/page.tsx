@@ -24,8 +24,9 @@ export default async function ExportarPage() {
           user: { select: { nombre: true } },
         },
       }),
-      user.rol === "ADMIN"
+      user.rol !== "VENDEDOR"
         ? prisma.ingreso.findMany({
+            where: { origen: "PROVEEDOR" },
             orderBy: { fecha: "desc" },
             include: {
               producto: { select: { nombre: true } },
@@ -33,7 +34,7 @@ export default async function ExportarPage() {
             },
           })
         : Promise.resolve([] as never[]),
-      user.rol === "ADMIN"
+      user.rol !== "VENDEDOR"
         ? prisma.baja.findMany({
             orderBy: { fecha: "desc" },
             include: {

@@ -75,7 +75,7 @@ export default async function StockPage({ searchParams }: PageProps) {
 
       <FiltrosForm
         action="/stock"
-        permitirSucursal={user.rol === "ADMIN"}
+        permitirSucursal={user.rol !== "VENDEDOR"}
         productos={productos}
         defaultValues={{
           sucursal: (sp.sucursal as typeof filtros.sucursal) ?? "",

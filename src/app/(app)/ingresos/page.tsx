@@ -34,11 +34,13 @@ type PageProps = {
 
 export default async function IngresosPage({ searchParams }: PageProps) {
   const session = await auth();
-  if (session?.user.rol !== "ADMIN") redirect("/dashboard");
+  const rol = session?.user.rol;
+  if (rol !== "ADMIN" && rol !== "LOGISTICA") redirect("/dashboard");
 
   const { ok } = await searchParams;
 
   const ingresos = await prisma.ingreso.findMany({
+    where: { origen: "PROVEEDOR" },
     orderBy: { fecha: "desc" },
     include: {
       producto: { select: { nombre: true } },
@@ -77,12 +79,14 @@ export default async function IngresosPage({ searchParams }: PageProps) {
             Mercadería recibida en consignación desde All Covering SRL.
           </p>
         </div>
-        <Button asChild>
-          <Link href="/ingresos/nuevo">
-            <Plus className="mr-2 h-4 w-4" />
-            Nuevo ingreso
-          </Link>
-        </Button>
+        {rol === "ADMIN" && (
+          <Button asChild>
+            <Link href="/ingresos/nuevo">
+              <Plus className="mr-2 h-4 w-4" />
+              Nuevo ingreso
+            </Link>
+          </Button>
+        )}
       </div>
 
       {ok && (

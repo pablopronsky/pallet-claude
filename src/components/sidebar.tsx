@@ -31,17 +31,17 @@ type NavItem = {
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["ADMIN", "VENDEDOR"] },
-  { href: "/stock", label: "Stock actual", icon: PackageSearch, roles: ["ADMIN", "VENDEDOR"] },
-  { href: "/ingresos", label: "Ingresos", icon: TruckIcon, roles: ["ADMIN"] },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["ADMIN", "VENDEDOR", "LOGISTICA"] },
+  { href: "/stock", label: "Stock actual", icon: PackageSearch, roles: ["ADMIN", "VENDEDOR", "LOGISTICA"] },
+  { href: "/ingresos", label: "Ingresos", icon: TruckIcon, roles: ["ADMIN", "LOGISTICA"] },
   { href: "/ventas", label: "Ventas", icon: ShoppingCart, roles: ["ADMIN", "VENDEDOR"] },
-  { href: "/transferencias", label: "Transferencias", icon: ArrowLeftRight, roles: ["ADMIN"] },
-  { href: "/bajas", label: "Bajas", icon: MinusCircle, roles: ["ADMIN"] },
-  { href: "/liquidaciones", label: "Liquidaciones", icon: Wallet, roles: ["ADMIN"] },
-  { href: "/historial", label: "Historial", icon: ClipboardList, roles: ["ADMIN", "VENDEDOR"] },
-  { href: "/productos", label: "Modelos", icon: Layers, roles: ["ADMIN"] },
-  { href: "/usuarios", label: "Usuarios", icon: Users, roles: ["ADMIN"] },
-  { href: "/exportar", label: "Exportar", icon: Download, roles: ["ADMIN", "VENDEDOR"] },
+  { href: "/transferencias", label: "Transferencias", icon: ArrowLeftRight, roles: ["ADMIN", "LOGISTICA"] },
+  { href: "/bajas", label: "Bajas", icon: MinusCircle, roles: ["ADMIN", "LOGISTICA"] },
+  { href: "/liquidaciones", label: "Liquidaciones", icon: Wallet, roles: ["ADMIN", "LOGISTICA"] },
+  { href: "/historial", label: "Historial", icon: ClipboardList, roles: ["ADMIN", "VENDEDOR", "LOGISTICA"] },
+  { href: "/productos", label: "Modelos", icon: Layers, roles: ["ADMIN", "LOGISTICA"] },
+  { href: "/usuarios", label: "Usuarios", icon: Users, roles: ["ADMIN", "LOGISTICA"] },
+  { href: "/exportar", label: "Exportar", icon: Download, roles: ["ADMIN", "VENDEDOR", "LOGISTICA"] },
 ];
 
 type SidebarProps = {
