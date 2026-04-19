@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsx *)",
+      "Bash(curl -s -o /dev/null -w \"login: %{http_code}\\\\n\" http://localhost:3000/login)",
+      "Bash(curl -s -o /dev/null -w \"dashboard: %{http_code}\\\\n\" http://localhost:3000/dashboard)",
+      "Bash(curl -s -o /dev/null -w \"login: %{http_code}\\\\n\" --max-time 10 http://localhost:3000/login)",
+      "Bash(curl -s -o /dev/null -w \"dashboard: %{http_code}\\\\n\" --max-time 10 http://localhost:3000/dashboard)",
+      "Bash(curl -s -o /dev/null -w \"stock: %{http_code}\\\\n\" --max-time 10 http://localhost:3000/stock)",
+      "Bash(netstat -ano)",
+      "Bash(tasklist //FI \"PID eq 27420\")",
+      "Bash(taskkill //F //PID 27420)",
+      "Bash(curl -s -o /dev/null -w \"login: %{http_code}\\\\n\" --max-time 30 http://localhost:3000/login)",
+      "Bash(curl -s -o /dev/null -w \"dashboard \\(should 307\\): %{http_code}\\\\n\" --max-time 30 http://localhost:3000/dashboard)",
+      "Bash(curl -s -o /dev/null -w \"root: %{http_code}\\\\n\" --max-time 30 http://localhost:3000/)"
+    ]
+  }
+}

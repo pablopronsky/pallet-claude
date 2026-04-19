@@ -3,60 +3,65 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
+// Slots fijos de usuario: uno por rol+sucursal. Si el slot ya tiene un
+// usuario real cargado, el seed NO lo toca (ni nombre, ni email, ni
+// password). Solo crea los slots vacíos con un default razonable.
+const DEFAULTS = [
+  {
+    nombre: "Administrador NP",
+    email: "admin@np.com",
+    passwordPlano: "admin123",
+    rol: Rol.ADMIN,
+    sucursal: null as Sucursal | null,
+  },
+  {
+    nombre: "Vendedor Quilmes",
+    email: "quilmes@np.com",
+    passwordPlano: "vend123",
+    rol: Rol.VENDEDOR,
+    sucursal: Sucursal.QUILMES,
+  },
+  {
+    nombre: "Vendedor La Plata",
+    email: "laplata@np.com",
+    passwordPlano: "vend123",
+    rol: Rol.VENDEDOR,
+    sucursal: Sucursal.LA_PLATA,
+  },
+  {
+    nombre: "Vendedor Gonnet",
+    email: "gonnet@np.com",
+    passwordPlano: "vend123",
+    rol: Rol.VENDEDOR,
+    sucursal: Sucursal.GONNET,
+  },
+];
+
 async function main() {
   console.log("🌱 Iniciando seed...");
 
-  const adminHash = await bcrypt.hash("admin123", 10);
-  const vendHash = await bcrypt.hash("vend123", 10);
+  for (const u of DEFAULTS) {
+    const existente = await prisma.user.findFirst({
+      where: { rol: u.rol, sucursal: u.sucursal },
+    });
 
-  // 4 slots fijos de usuario — nombres reales del equipo Nuevo Parket.
-  const usuarios = [
-    {
-      nombre: "Ariel Pérez",
-      email: "admin@np.com",
-      password: adminHash,
-      rol: Rol.ADMIN,
-      sucursal: null,
-    },
-    {
-      nombre: "Carla Gómez",
-      email: "quilmes@np.com",
-      password: vendHash,
-      rol: Rol.VENDEDOR,
-      sucursal: Sucursal.QUILMES,
-    },
-    {
-      nombre: "Diego Ríos",
-      email: "laplata@np.com",
-      password: vendHash,
-      rol: Rol.VENDEDOR,
-      sucursal: Sucursal.LA_PLATA,
-    },
-    {
-      nombre: "Lucía Méndez",
-      email: "gonnet@np.com",
-      password: vendHash,
-      rol: Rol.VENDEDOR,
-      sucursal: Sucursal.GONNET,
-    },
-  ];
-
-  for (const u of usuarios) {
-    const existente = await prisma.user.findUnique({ where: { email: u.email } });
     if (existente) {
-      // Actualizamos nombre por si cambió entre seeds, manteniendo password.
-      if (existente.nombre !== u.nombre) {
-        await prisma.user.update({
-          where: { email: u.email },
-          data: { nombre: u.nombre },
-        });
-        console.log(`  ↻ Renombrado ${u.email} → ${u.nombre}`);
-      } else {
-        console.log(`  ↺ Usuario ya existe: ${u.email}`);
-      }
+      console.log(
+        `  ↺ Slot ${u.rol}/${u.sucursal ?? "—"} ya ocupado por ${existente.nombre} (${existente.email}) — sin cambios`,
+      );
       continue;
     }
-    await prisma.user.create({ data: u });
+
+    const hash = await bcrypt.hash(u.passwordPlano, 10);
+    await prisma.user.create({
+      data: {
+        nombre: u.nombre,
+        email: u.email,
+        password: hash,
+        rol: u.rol,
+        sucursal: u.sucursal,
+      },
+    });
     console.log(`  ✓ Creado ${u.rol}: ${u.email} (${u.nombre})`);
   }
 
