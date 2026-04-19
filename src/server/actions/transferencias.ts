@@ -137,7 +137,7 @@ export async function crearTransferenciaAction(
   revalidatePath("/stock");
   revalidatePath("/movimientos");
   revalidatePath("/dashboard");
-  revalidateTag("ingresos");
-  revalidateTag("stock");
+  revalidateTag("ingresos", "max");
+  revalidateTag("stock", "max");
   redirect("/transferencias?ok=1");
 }

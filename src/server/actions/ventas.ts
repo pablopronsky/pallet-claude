@@ -161,6 +161,6 @@ export async function crearVentaAction(
   revalidatePath("/stock");
   revalidatePath("/movimientos");
   revalidatePath("/dashboard");
-  revalidateTag("ventas");
+  revalidateTag("ventas", "max");
   redirect("/ventas?ok=1");
 }

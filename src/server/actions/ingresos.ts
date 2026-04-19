@@ -65,6 +65,6 @@ export async function crearIngresoAction(
   revalidatePath("/stock");
   revalidatePath("/movimientos");
   revalidatePath("/dashboard");
-  revalidateTag("ingresos");
+  revalidateTag("ingresos", "max");
   redirect("/ingresos?ok=1");
 }

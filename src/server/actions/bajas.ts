@@ -90,6 +90,6 @@ export async function crearBajaAction(
   revalidatePath("/stock");
   revalidatePath("/movimientos");
   revalidatePath("/dashboard");
-  revalidateTag("bajas");
+  revalidateTag("bajas", "max");
   redirect("/bajas?ok=1");
 }

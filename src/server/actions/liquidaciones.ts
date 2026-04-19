@@ -50,6 +50,6 @@ export async function crearLiquidacionAction(
 
   revalidatePath("/liquidaciones");
   revalidatePath("/dashboard");
-  revalidateTag("liquidaciones");
+  revalidateTag("liquidaciones", "max");
   redirect("/liquidaciones?ok=1");
 }
