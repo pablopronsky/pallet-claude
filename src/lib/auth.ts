@@ -29,6 +29,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const ok = await bcrypt.compare(password, usuario.password);
         if (!ok) return null;
 
+        // Invariante: vendedor siempre tiene sucursal asignada
+        if (usuario.rol === "VENDEDOR" && !usuario.sucursal) return null;
+
         return {
           id: usuario.id,
           name: usuario.nombre,

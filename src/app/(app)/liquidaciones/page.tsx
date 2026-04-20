@@ -27,7 +27,7 @@ import {
   formatARS,
   formatFecha,
   formatMoneda,
-  montoEnARS,
+  montoEnARSoZero,
   toNumber,
 } from "@/lib/format";
 
@@ -59,7 +59,7 @@ export default async function LiquidacionesPage({ searchParams }: PageProps) {
     monto: toNumber(l.monto),
     moneda: l.moneda,
     tipoCambio: l.tipoCambio ? toNumber(l.tipoCambio) : "",
-    montoARS: montoEnARS(l.monto, l.moneda, l.tipoCambio),
+    montoARS: montoEnARSoZero(l.monto, l.moneda, l.tipoCambio),
     comprobante: l.comprobante ?? "",
     registradoPor: l.admin.nombre,
     notas: l.notas ?? "",
@@ -166,7 +166,7 @@ export default async function LiquidacionesPage({ searchParams }: PageProps) {
                   {l.tipoCambio ? toNumber(l.tipoCambio).toFixed(2) : "—"}
                 </TableCell>
                 <TableCell className="text-right tabular font-medium">
-                  {formatARS(montoEnARS(l.monto, l.moneda, l.tipoCambio))}
+                  {formatARS(montoEnARSoZero(l.monto, l.moneda, l.tipoCambio))}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   {l.comprobante ?? "—"}

@@ -13,7 +13,12 @@ export const crearBajaSchema = z.object({
   motivo: z.nativeEnum(Motivo, {
     errorMap: () => ({ message: "Elegí un motivo" }),
   }),
-  fecha: z.coerce.date().optional(),
+  fecha: z.coerce
+    .date()
+    .optional()
+    .refine((d) => !d || d <= new Date(), {
+      message: "La fecha no puede ser futura",
+    }),
   notas: z
     .string()
     .max(500, "Máximo 500 caracteres")

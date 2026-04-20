@@ -14,7 +14,12 @@ export const crearTransferenciaSchema = z
       .number({ invalid_type_error: "Ingresá un número" })
       .int("Debe ser un número entero de cajas")
       .positive("Debe ser mayor a cero"),
-    fecha: z.coerce.date().optional(),
+    fecha: z.coerce
+      .date()
+      .optional()
+      .refine((d) => !d || d <= new Date(), {
+        message: "La fecha no puede ser futura",
+      }),
     notas: z
       .string()
       .max(500, "Máximo 500 caracteres")

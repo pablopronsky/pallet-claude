@@ -29,7 +29,11 @@ export async function loginAction(
     };
   }
 
-  const callbackUrl = String(formData.get("callbackUrl") ?? "/dashboard");
+  const rawCallbackUrl = String(formData.get("callbackUrl") ?? "");
+  const callbackUrl =
+    rawCallbackUrl.startsWith("/") && !rawCallbackUrl.startsWith("//")
+      ? rawCallbackUrl
+      : "/dashboard";
 
   try {
     await signIn("credentials", {

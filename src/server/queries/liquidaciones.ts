@@ -3,7 +3,7 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
-import { montoEnARS } from "@/lib/format";
+import { montoEnARSoZero } from "@/lib/format";
 
 async function _getTotalLiquidadoARS(rango?: {
   desde?: Date;
@@ -25,7 +25,11 @@ async function _getTotalLiquidadoARS(rango?: {
   });
 
   return liqs.reduce(
-    (acc, l) => acc + montoEnARS(l.monto, l.moneda, l.tipoCambio),
+    (acc, l) =>
+      acc +
+      montoEnARSoZero(l.monto, l.moneda, l.tipoCambio, (msg) =>
+        console.error(`[liquidaciones] ${msg}`),
+      ),
     0,
   );
 }

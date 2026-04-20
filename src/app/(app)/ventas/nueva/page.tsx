@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
 import { auth } from "@/lib/auth";
@@ -19,6 +20,11 @@ import {
 export default async function NuevaVentaPage() {
   const session = await auth();
   const user = session!.user;
+
+  // LOGISTICA no tiene sucursal asignada, no puede vender
+  if (user.rol === "LOGISTICA") redirect("/dashboard");
+  // Vendedor sin sucursal no debería existir, pero como defensa extra
+  if (user.rol === "VENDEDOR" && !user.sucursal) redirect("/dashboard");
 
   let disponibles: FilaDisponible[] = [];
   if (user.rol === "VENDEDOR" && user.sucursal) {

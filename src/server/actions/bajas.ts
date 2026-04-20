@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
@@ -37,50 +37,72 @@ export async function crearBajaAction(
   const { productoId, sucursal, cantidadCajas, motivo, fecha, notas } =
     parsed.data;
 
+  const runTx = () =>
+    prisma.$transaction(
+      async (tx) => {
+        const [ingAgg, venAgg, bajAgg, transAgg] = await Promise.all([
+          tx.ingreso.aggregate({
+            where: { productoId, sucursal },
+            _sum: { cantidadCajas: true },
+          }),
+          tx.venta.aggregate({
+            where: { productoId, sucursal },
+            _sum: { cantidadCajas: true },
+          }),
+          tx.baja.aggregate({
+            where: { productoId, sucursal },
+            _sum: { cantidadCajas: true },
+          }),
+          tx.transferencia.aggregate({
+            where: { productoId, sucursalOrigen: sucursal },
+            _sum: { cantidadCajas: true },
+          }),
+        ]);
+        const disponible =
+          (ingAgg._sum.cantidadCajas ?? 0) -
+          (venAgg._sum.cantidadCajas ?? 0) -
+          (bajAgg._sum.cantidadCajas ?? 0) -
+          (transAgg._sum.cantidadCajas ?? 0);
+
+        if (disponible < cantidadCajas) {
+          throw new Error(
+            `Stock insuficiente para dar de baja. Disponibles: ${disponible} cajas.`,
+          );
+        }
+
+        await tx.baja.create({
+          data: {
+            productoId,
+            sucursal,
+            cantidadCajas,
+            motivo,
+            fecha: fecha ?? new Date(),
+            adminId: session.user.id,
+            notas,
+          },
+        });
+      },
+      { isolationLevel: "Serializable" },
+    );
+
   try {
-    await prisma.$transaction(async (tx) => {
-      const [ingAgg, venAgg, bajAgg, transAgg] = await Promise.all([
-        tx.ingreso.aggregate({
-          where: { productoId, sucursal },
-          _sum: { cantidadCajas: true },
-        }),
-        tx.venta.aggregate({
-          where: { productoId, sucursal },
-          _sum: { cantidadCajas: true },
-        }),
-        tx.baja.aggregate({
-          where: { productoId, sucursal },
-          _sum: { cantidadCajas: true },
-        }),
-        tx.transferencia.aggregate({
-          where: { productoId, sucursalOrigen: sucursal },
-          _sum: { cantidadCajas: true },
-        }),
-      ]);
-      const disponible =
-        (ingAgg._sum.cantidadCajas ?? 0) -
-        (venAgg._sum.cantidadCajas ?? 0) -
-        (bajAgg._sum.cantidadCajas ?? 0) -
-        (transAgg._sum.cantidadCajas ?? 0);
-
-      if (disponible < cantidadCajas) {
-        throw new Error(
-          `Stock insuficiente para dar de baja. Disponibles: ${disponible} cajas.`,
-        );
+    let attempts = 3;
+    while (attempts--) {
+      try {
+        await runTx();
+        break;
+      } catch (err) {
+        const isSerializationError =
+          err instanceof Error &&
+          "code" in err &&
+          (err as { code: string }).code === "P2034";
+        if (isSerializationError && attempts > 0) {
+          await new Promise((r) => setTimeout(r, 50));
+          continue;
+        }
+        throw err;
       }
-
-      await tx.baja.create({
-        data: {
-          productoId,
-          sucursal,
-          cantidadCajas,
-          motivo,
-          fecha: fecha ?? new Date(),
-          adminId: session.user.id,
-          notas,
-        },
-      });
-    });
+    }
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Error al registrar la baja.";
     return { ok: false, error: msg };
@@ -90,6 +112,6 @@ export async function crearBajaAction(
   revalidatePath("/stock");
   revalidatePath("/movimientos");
   revalidatePath("/dashboard");
-  revalidateTag("bajas", "max");
+  updateTag("bajas");
   redirect("/bajas?ok=1");
 }

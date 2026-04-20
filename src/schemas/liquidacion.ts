@@ -13,7 +13,12 @@ export const crearLiquidacionSchema = z
       .union([z.literal(""), z.coerce.number().positive()])
       .optional()
       .transform((v) => (typeof v === "number" ? v : undefined)),
-    fecha: z.coerce.date().optional(),
+    fecha: z.coerce
+      .date()
+      .optional()
+      .refine((d) => !d || d <= new Date(), {
+        message: "La fecha no puede ser futura",
+      }),
     comprobante: z
       .string()
       .max(120, "Máximo 120 caracteres")

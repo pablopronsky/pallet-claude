@@ -5,7 +5,7 @@ import { Sucursal } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { getStockActual, type StockFila } from "@/server/queries/stock";
-import { montoEnARS } from "@/lib/format";
+import { montoEnARSoZero } from "@/lib/format";
 import type { Filtros } from "@/schemas/filtros";
 
 type DashboardOpts = Filtros & {
@@ -136,12 +136,18 @@ async function _getDashboardData(
   const porMes = new Map<string, PuntoEvolucion>();
 
   for (const v of ventas) {
-    const costoARS = montoEnARS(
+    const costoARS = montoEnARSoZero(
       v.ingreso.precioCostoPorCaja,
       v.ingreso.moneda,
       v.ingreso.tipoCambio,
+      (msg) => console.error(`[dashboard] Ingreso ${v.ingresoId}: ${msg}`),
     );
-    const precioARS = montoEnARS(v.precioVentaPorCaja, v.moneda, v.tipoCambio);
+    const precioARS = montoEnARSoZero(
+      v.precioVentaPorCaja,
+      v.moneda,
+      v.tipoCambio,
+      (msg) => console.error(`[dashboard] Venta ${v.id}: ${msg}`),
+    );
     const cajas = v.cantidadCajas;
 
     const totalVenta = precioARS * cajas;
@@ -183,7 +189,11 @@ async function _getDashboardData(
   }
 
   const liquidadoTotal = liquidaciones.reduce(
-    (acc, l) => acc + montoEnARS(l.monto, l.moneda, l.tipoCambio),
+    (acc, l) =>
+      acc +
+      montoEnARSoZero(l.monto, l.moneda, l.tipoCambio, (msg) =>
+        console.error(`[dashboard] Liquidacion: ${msg}`),
+      ),
     0,
   );
   const saldoPendiente = Math.max(0, deudaTotal - liquidadoTotal);

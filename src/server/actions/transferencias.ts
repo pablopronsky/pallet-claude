@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
@@ -54,8 +54,9 @@ export async function crearTransferenciaAction(
     notas,
   } = parsed.data;
 
-  try {
-    await prisma.$transaction(async (tx) => {
+  const runTx = () =>
+    prisma.$transaction(
+      async (tx) => {
       // FIFO sobre los ingresos del producto en la sucursal origen,
       // descontando ventas y transferencias salientes previas por ingreso.
       const ingresos = await tx.ingreso.findMany({
@@ -135,7 +136,28 @@ export async function crearTransferenciaAction(
       if (restan > 0) {
         throw new Error("No se pudo asignar la transferencia al stock origen.");
       }
-    });
+    },
+    { isolationLevel: "Serializable" },
+  );
+
+  try {
+    let attempts = 3;
+    while (attempts--) {
+      try {
+        await runTx();
+        break;
+      } catch (err) {
+        const isSerializationError =
+          err instanceof Error &&
+          "code" in err &&
+          (err as { code: string }).code === "P2034";
+        if (isSerializationError && attempts > 0) {
+          await new Promise((r) => setTimeout(r, 50));
+          continue;
+        }
+        throw err;
+      }
+    }
   } catch (err) {
     const msg =
       err instanceof Error ? err.message : "Error al registrar la transferencia.";
@@ -146,7 +168,7 @@ export async function crearTransferenciaAction(
   revalidatePath("/stock");
   revalidatePath("/movimientos");
   revalidatePath("/dashboard");
-  revalidateTag("ingresos", "max");
-  revalidateTag("stock", "max");
+  updateTag("ingresos");
+  updateTag("stock");
   redirect("/transferencias?ok=1");
 }

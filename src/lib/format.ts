@@ -68,16 +68,33 @@ export function formatMoneda(
 
 // Convierte un monto a ARS aplicando el tipo de cambio.
 // Si la moneda es ARS, devuelve el monto tal cual (TC se ignora).
-// Si la moneda es USD y no hay TC, devuelve el monto sin convertir (asume 1 = caso degenerado).
+// Si la moneda es USD y no hay TC, devuelve null (dato incompleto — el caller debe manejarlo).
 export function montoEnARS(
   monto: Numerico | null | undefined,
   moneda: Moneda,
   tipoCambio: Numerico | null | undefined,
-): number {
+): number | null {
   const m = toNumber(monto);
   if (moneda === "ARS") return m;
   const tc = toNumber(tipoCambio);
-  return tc > 0 ? m * tc : m;
+  if (tc <= 0) return null;
+  return m * tc;
+}
+
+// Versión segura para cálculos agregados: usa 0 si falta TC y registra el error.
+// Útil para no romper el dashboard ante un dato puntual corrupto.
+export function montoEnARSoZero(
+  monto: Numerico | null | undefined,
+  moneda: Moneda,
+  tipoCambio: Numerico | null | undefined,
+  onMissing?: (msg: string) => void,
+): number {
+  const result = montoEnARS(monto, moneda, tipoCambio);
+  if (result === null) {
+    onMissing?.(`USD sin tipo de cambio (monto: ${toNumber(monto)})`);
+    return 0;
+  }
+  return result;
 }
 
 export function formatCajas(v: Numerico | null | undefined): string {

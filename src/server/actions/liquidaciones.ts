@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
@@ -50,6 +50,6 @@ export async function crearLiquidacionAction(
 
   revalidatePath("/liquidaciones");
   revalidatePath("/dashboard");
-  revalidateTag("liquidaciones", "max");
+  updateTag("liquidaciones");
   redirect("/liquidaciones?ok=1");
 }

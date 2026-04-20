@@ -4,7 +4,7 @@ import { unstable_cache } from "next/cache";
 import { Sucursal, Motivo } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
-import { montoEnARS } from "@/lib/format";
+import { montoEnARSoZero } from "@/lib/format";
 import { SUCURSAL_LABEL } from "@/lib/constants";
 import type { Filtros } from "@/schemas/filtros";
 
@@ -128,7 +128,9 @@ async function _getMovimientos(opts: Opts): Promise<Movimiento[]> {
   const list: Movimiento[] = [];
 
   for (const i of ingresos) {
-    const costoARS = montoEnARS(i.precioCostoPorCaja, i.moneda, i.tipoCambio);
+    const costoARS = montoEnARSoZero(i.precioCostoPorCaja, i.moneda, i.tipoCambio,
+      (msg) => console.error(`[movimientos] Ingreso ${i.id}: ${msg}`),
+    );
     list.push({
       id: `ING-${i.id}`,
       tipo: "INGRESO",
@@ -146,7 +148,9 @@ async function _getMovimientos(opts: Opts): Promise<Movimiento[]> {
     });
   }
   for (const v of ventas) {
-    const precioARS = montoEnARS(v.precioVentaPorCaja, v.moneda, v.tipoCambio);
+    const precioARS = montoEnARSoZero(v.precioVentaPorCaja, v.moneda, v.tipoCambio,
+      (msg) => console.error(`[movimientos] Venta ${v.id}: ${msg}`),
+    );
     list.push({
       id: `VEN-${v.id}`,
       tipo: "VENTA",
@@ -200,7 +204,9 @@ async function _getMovimientos(opts: Opts): Promise<Movimiento[]> {
     });
   }
   for (const l of liquidaciones) {
-    const montoARS = montoEnARS(l.monto, l.moneda, l.tipoCambio);
+    const montoARS = montoEnARSoZero(l.monto, l.moneda, l.tipoCambio,
+      (msg) => console.error(`[movimientos] Liquidacion ${l.id}: ${msg}`),
+    );
     list.push({
       id: `LIQ-${l.id}`,
       tipo: "LIQUIDACION",
